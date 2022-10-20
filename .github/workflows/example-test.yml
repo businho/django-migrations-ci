@@ -32,7 +32,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r example/requirements.txt
-    - name: Restore database
+    - name: Restore database from cache
       run: |
         cd example
         if [ -f $DB_FILE_CACHED ]; then
@@ -47,8 +47,12 @@ jobs:
       run: |
         cd example
         ./manage.py test --keepdb
+        pwd
+        ls
+        ls ..
 
     - uses: actions/cache@v3
+      name: Cache database
       with:
         path: |
           example/$DB_FILE_CACHED
