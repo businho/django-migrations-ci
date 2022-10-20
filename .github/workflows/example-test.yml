@@ -33,7 +33,7 @@ jobs:
       name: Cache database
       with:
         path: |
-          $GITHUB_WORKSPACE/example/$DB_FILE_CACHED
+          example/djangomigrations-dbtest.sqlite3
         key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
 
     - name: Install dependencies
@@ -55,5 +55,3 @@ jobs:
       run: |
         cd example
         ./manage.py test --keepdb
-        pwd
-        echo "db cached path $GITHUB_WORKSPACE/example/$DB_FILE_CACHED"
