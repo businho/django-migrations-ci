@@ -9,6 +9,6 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054
+        # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
         # TODO: Handle aliases better.
         setup_databases(verbosity=True, interactive=False, aliases=["default"])

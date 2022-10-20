@@ -22,7 +22,9 @@ class Command(BaseCommand):
             parallel = int(parallel)
 
         connection = connections["default"]
-        settings.DATABASES[connection.alias]["NAME"] = connection.creation._get_test_db_name()
+        settings.DATABASES[connection.alias][
+            "NAME"
+        ] = connection.creation._get_test_db_name()
 
         # https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61
         for index in range(1, parallel + 1):

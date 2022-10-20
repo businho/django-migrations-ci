@@ -11,7 +11,7 @@ def create_one_bus(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('testapp', '0001_initial'),
+        ("testapp", "0001_initial"),
     ]
 
     operations = [migrations.RunPython(create_one_bus, migrations.RunPython.noop)]

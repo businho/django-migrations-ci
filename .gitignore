@@ -1,5 +1,9 @@
-.python-version
-
 __pycache__/
+build/
+dist/
+.eggs/
+*.egg-info/
 
+.coverage
+.python-version
 *.sqlite3
