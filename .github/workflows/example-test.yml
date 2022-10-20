@@ -1,0 +1,54 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python package
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    env:
+      DB_FILE: dbtest.sqlite3
+      DB_FILE_CACHED: djangomigrations-dbtest.sqlite3
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r example/requirements.txt
+    - name: Restore database
+      run: |
+        if [ -f $DB_FILE_CACHED ]; then
+          echo 'Database cache exists.'
+          cp $DB_FILE_CACHED $DB_FILE
+        else
+          echo 'Database cache does not exist.'
+          ./manage.py setup_test_db
+          cp $DB_FILE $DB_FILE_CACHED
+        fi
+    - name: Test with Django
+      run: |
+        cd example
+        ./manage.py test --keepdb
+
+    - uses: actions/cache@v3
+      with:
+        path: |
+          $DB_FILE_CACHED
+        key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
