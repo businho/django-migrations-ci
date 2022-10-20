@@ -34,6 +34,7 @@ jobs:
         python -m pip install -r example/requirements.txt
     - name: Restore database
       run: |
+        cd example
         if [ -f $DB_FILE_CACHED ]; then
           echo 'Database cache exists.'
           cp $DB_FILE_CACHED $DB_FILE
@@ -50,5 +51,5 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: |
-          $DB_FILE_CACHED
+          example/$DB_FILE_CACHED
         key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
