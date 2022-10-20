@@ -4,7 +4,6 @@ from django.db import connections
 from django.test.runner import get_max_test_processes
 
 
-# TODO: No idea how to test it.
 class Command(BaseCommand):
     """
     Copy the test database to support parallel tests.

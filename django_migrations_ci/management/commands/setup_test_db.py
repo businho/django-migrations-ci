@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.test.utils import setup_databases
 
 
-# TODO: No idea how to test it.
 class Command(BaseCommand):
     """
     Use Django to setup databases.
