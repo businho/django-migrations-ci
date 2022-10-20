@@ -23,3 +23,56 @@ When cache exists, load this database state (restore?) before your tests and run
 When cache doesn't exist, run migrations and dump the final state for an SQL file.
 
 Dump and restore are database-specific, but possible to handle all Django supported databases.
+
+
+## Workflow
+
+This is how the "run test" CI job should work.
+
+```
+restore djangomigrations.sql from CI cache
+
+if djangomigrations.sql exists on cache:
+  Restore djangomigrations.sql to test database
+  Clone the restored test database to run threaded tests
+else:
+  Run `migrate` command
+  Dump test database to djangomigrations.sql
+
+save djangomigrations.sql to CI cache
+```
+
+## Cache example in GitHub
+
+TODO #1, I never did it but I'm sure it is possible in some way. See #1
+
+## Cache example in GitLab
+
+Still have to abstract `psql/pg_dump/pg_restore`, but I expect something like that will work:
+
+```
+test_job:
+  stage: test
+  script:
+    - head djangomigrations.sql || echo 'djangomigrations.sql does not exist.'
+    - |
+      if [ -f djangomigrations.sql ]; then
+        psql -h $DB_HOST -U $POSTGRES_USER -c "CREATE DATABASE test_$DB_NAME;"
+        pg_restore -h $DB_HOST -U $POSTGRES_USER -d test_$DB_NAME djangomigrations.sql
+      else
+        ./manage.py setup_test_db
+        pg_dump -F c -h $DB_HOST -U $POSTGRES_USER test_$DB_NAME > djangomigrations.sql
+      fi
+    - ./manage.py clone_test_db
+    - pytest -n $(nproc)
+  cache:
+    key:
+      # GitLab docs say it accepts only two files, but for some reason it works with wildcards too.
+      # You can't add more than two lines here.
+      files:
+        - "requirements.txt"
+        - "*/migrations/*.py"
+    paths:
+      - djangomigrations.sql
+ ```
+ 
