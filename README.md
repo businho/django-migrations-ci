@@ -42,11 +42,11 @@ else:
 save djangomigrations.sql to CI cache
 ```
 
-## Cache example in GitHub
+## Cache example on GitHub
 
 TODO #1, I never did it but I'm sure it is possible in some way. See #1
 
-## Cache example in GitLab
+## Cache example on GitLab
 
 Still have to abstract `psql/pg_dump/pg_restore`, but I expect something like that will work:
 
@@ -75,4 +75,3 @@ test_job:
     paths:
       - djangomigrations.sql
  ```
- 
