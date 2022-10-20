@@ -34,11 +34,11 @@ restore djangomigrations.sql from CI cache
 
 if djangomigrations.sql exists on cache:
   Restore djangomigrations.sql to test database
-  Clone the restored test database to run threaded tests
 else:
-  Run `migrate` command
+  Setup test database
   Dump test database to djangomigrations.sql
 
+Clone the test database to run threaded tests
 save djangomigrations.sql to CI cache
 ```
 
@@ -48,20 +48,18 @@ TODO #1, I never did it but I'm sure it is possible in some way. See #1
 
 ## Cache example on GitLab
 
-Still have to abstract `psql/pg_dump/pg_restore`, but I expect something like that will work:
+Still have to abstract for all databases, but I expect something like that will work:
 
 ```
 test_job:
   stage: test
   script:
-    - head djangomigrations.sql || echo 'djangomigrations.sql does not exist.'
     - |
-      if [ -f djangomigrations.sql ]; then
-        psql -h $DB_HOST -U $POSTGRES_USER -c "CREATE DATABASE test_$DB_NAME;"
-        pg_restore -h $DB_HOST -U $POSTGRES_USER -d test_$DB_NAME djangomigrations.sql
+      if [ -f djangomigrations-dbtest.sqlite3 ]; then
+        cp djangomigrations-dbtest.sqlite3 dbtest.sqlite3
       else
         ./manage.py setup_test_db
-        pg_dump -F c -h $DB_HOST -U $POSTGRES_USER test_$DB_NAME > djangomigrations.sql
+        cp dbtest.sqlite3 djangomigrations-dbtest.sqlite3
       fi
     - ./manage.py clone_test_db
     - pytest -n $(nproc)
@@ -73,5 +71,5 @@ test_job:
         - "requirements.txt"
         - "*/migrations/*.py"
     paths:
-      - djangomigrations.sql
+      - djangomigrations-dbtest.sqlite3
  ```
