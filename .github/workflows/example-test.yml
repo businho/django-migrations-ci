@@ -33,7 +33,7 @@ jobs:
       name: Cache database
       with:
         path: |
-          example/$DB_FILE_CACHED
+          $GITHUB_WORKSPACE/example/$DB_FILE_CACHED
         key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
 
     - name: Install dependencies
@@ -56,5 +56,4 @@ jobs:
         cd example
         ./manage.py test --keepdb
         pwd
-        ls
-        ls ..
+        echo "db cached path $GITHUB_WORKSPACE/example/$DB_FILE_CACHED"
