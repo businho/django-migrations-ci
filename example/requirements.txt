@@ -1,2 +1,2 @@
 django
-django-migrations-ci
+-e ..
