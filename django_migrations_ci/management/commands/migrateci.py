@@ -14,9 +14,10 @@ class Command(BaseCommand):
         parser.add_argument("-s", "--suffix", default="")
 
     def handle(self, parallel, *args, suffix, **options):
-        connection = connections["default"]
+        database_alias = "default"
+        connection = connections[database_alias]
         test_db_name = connection.creation._get_test_db_name()
-        cached_file = f"migrateci-{test_db_name}"
+        cached_file = f"migrateci-{database_alias}"
 
         backend = sqlite3
 
