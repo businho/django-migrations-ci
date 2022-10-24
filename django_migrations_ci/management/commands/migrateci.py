@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.db import connections
@@ -26,7 +26,7 @@ class Command(BaseCommand):
 
         backend = django.get_db_backend(connection)
 
-        if os.path.exists(cached_file):
+        if Path(cached_file).exists():
             print("Database cache exists.")
             backend.load(test_db_name, cached_file)
         else:

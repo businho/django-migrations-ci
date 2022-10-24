@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -8,24 +9,22 @@ def setup_env():
     os.environ["DJANGO_SETTINGS_MODULE"] = "django_migrations_ci.tests.testapp.settings"
 
 
-def _rm(filename):
-    try:
-        os.remove("migrateci-default")
-    except FileNotFoundError:
-        pass
+def _rm(pathname):
+    for filename in Path(".").glob(pathname):
+        Path(filename).unlink()
 
 
 @pytest.fixture(autouse=True)
 def remove_cached_files():
-    filename = "migrateci-default"
-    _rm(filename)
+    pathname = "migrateci-*"
+    _rm(pathname)
     yield
-    _rm(filename)
+    _rm(pathname)
 
 
 @pytest.fixture(autouse=True)
 def remove_sqlite3_files():
-    filename = "dbtest.sqlite3"
-    _rm(filename)
+    pathname = "dbtest*.sqlite3"
+    _rm(pathname)
     yield
-    _rm(filename)
+    _rm(pathname)
