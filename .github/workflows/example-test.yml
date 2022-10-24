@@ -43,7 +43,7 @@ jobs:
     - name: Restore database from cache
       run: |
         cd example
-        ./manage.py migrateci
+        ./manage.py migrateci $(nproc)
     - name: Test with Django
       run: |
         cd example

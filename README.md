@@ -30,16 +30,16 @@ Dump and restore are database-specific, but possible to handle all Django suppor
 This is how the "run test" CI job should work.
 
 ```
-restore djangomigrations.sql from CI cache
+restore migrateci.sql from CI cache
 
-if djangomigrations.sql exists on cache:
-  Restore djangomigrations.sql to test database
+if migrateci.sql exists on cache:
+  Restore migrateci.sql to test database
 else:
   Setup test database
-  Dump test database to djangomigrations.sql
+  Dump test database to migrateci.sql
 
 Clone the test database to run threaded tests
-save djangomigrations.sql to CI cache
+save migrateci.sql to CI cache
 ```
 
 ## Cache example on GitHub
@@ -48,21 +48,15 @@ TODO #1, I never did it but I'm sure it is possible in some way. See #1
 
 ## Cache example on GitLab
 
-Still have to abstract for all databases, but I expect something like that will work:
+Still have to abstract `psql/pg_dump/pg_restore`, but I expect something like that will work:
 
 ```
 test_job:
   stage: test
   script:
-    - |
-      if [ -f djangomigrations-dbtest.sqlite3 ]; then
-        cp djangomigrations-dbtest.sqlite3 dbtest.sqlite3
-      else
-        ./manage.py setup_test_db
-        cp dbtest.sqlite3 djangomigrations-dbtest.sqlite3
-      fi
-    - ./manage.py clone_test_db
-    - pytest -n $(nproc)
+    - head migrateci-dbtest.sqlite3 || echo 'migrateci-dbtest.sqlite3 does not exist.'
+    - ./manage.py migrateci $(nproc)
+    - pytest --reuse-db -n $(nproc)
   cache:
     key:
       # GitLab docs say it accepts only two files, but for some reason it works with wildcards too.
@@ -71,5 +65,5 @@ test_job:
         - "requirements.txt"
         - "*/migrations/*.py"
     paths:
-      - djangomigrations-dbtest.sqlite3
+      - migrateci-dbtest.sqlite3
  ```
