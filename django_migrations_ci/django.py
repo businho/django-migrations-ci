@@ -1,8 +1,16 @@
+import importlib
+
 from django.conf import settings
 from django.db import connections
 from django.test.utils import setup_databases
 
-# TODO: Handle aliases.
+
+
+def get_db_backend(connection):
+    vendor_map = {
+        "sqlite": "django_migrations_ci.backends.sqlite3",
+    }
+    return importlib.import_module(vendor_map[connection.vendor])
 
 
 def setup_test_db(database="default"):

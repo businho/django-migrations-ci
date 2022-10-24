@@ -5,7 +5,6 @@ from django.db import connections
 from django.test.runner import get_max_test_processes
 
 from django_migrations_ci import django
-from django_migrations_ci.backends import sqlite3
 
 
 class Command(BaseCommand):
@@ -25,7 +24,7 @@ class Command(BaseCommand):
         test_db_name = connection.creation._get_test_db_name()
         cached_file = f"migrateci-{database}"
 
-        backend = sqlite3
+        backend = django.get_db_backend(connection)
 
         if os.path.exists(cached_file):
             print("Database cache exists.")
