@@ -5,7 +5,6 @@ from django.db import connections
 from django.test.utils import setup_databases
 
 
-
 def get_db_backend(connection):
     vendor_map = {
         "sqlite": "django_migrations_ci.backends.sqlite3",
