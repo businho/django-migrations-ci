@@ -1,23 +1,17 @@
 from django.conf import settings
 from django.db import connections
-from django.test.runner import get_max_test_processes
 from django.test.utils import setup_databases
 
 # TODO: Handle aliases.
 
 
-def setup_test_db(database_alias="default"):
+def setup_test_db(database="default"):
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
-    setup_databases(verbosity=True, interactive=False, aliases=[database_alias])
+    setup_databases(verbosity=True, interactive=False, aliases=[database])
 
 
-def clone_test_db(parallel, suffix, database_alias="default"):
-    if parallel == "auto":
-        parallel = get_max_test_processes()
-    else:
-        parallel = int(parallel)
-
-    connection = connections[database_alias]
+def clone_test_db(parallel, suffix, database="default"):
+    connection = connections[database]
     test_db_name = connection.creation._get_test_db_name()
     settings.DATABASES[connection.alias]["NAME"] = test_db_name
 
