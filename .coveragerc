@@ -4,7 +4,6 @@ concurrency=multiprocessing
 parallel=True
 
 [report]
-fail_under=95
 precision=2
 skip_covered=True
 show_missing=True
