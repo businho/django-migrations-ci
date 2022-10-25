@@ -1,20 +1,17 @@
 from contextlib import contextmanager
 
-import psycopg2
-from django.conf import settings
+from django.db import connections
 
 
 @contextmanager
 def _get_cursor():
-    db_conf = settings.DATABASES["postgresql"]
-    conn = psycopg2.connect(
-        "postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}".format(**db_conf)
-    )
+    # Encapsulate connection because it must close the connection too,
+    # because I can't drop database if this connection remains open.
+    connection = connections["postgresql"]
     try:
-        with conn:
-            yield conn.cursor()
+        yield connection.cursor()
     finally:
-        conn.close()
+        connection.close()
 
 
 def databases():
