@@ -21,18 +21,17 @@ class Command(BaseCommand):
             parallel = int(parallel)
 
         connection = connections[database]
-        test_db_name = connection.creation._get_test_db_name()
         cached_file = f"migrateci-{database}"
 
         backend = django.get_db_backend(connection)
 
         if Path(cached_file).exists():
             print("Database cache exists.")
-            backend.load(test_db_name, cached_file)
+            backend.load(database, cached_file)
         else:
             print("Database cache does not exist.")
-            django.setup_test_db(database=database)
-            backend.dump(test_db_name, cached_file)
+            django.setup_test_db()
+            backend.dump(database, cached_file)
 
         if parallel:
             django.clone_test_db(
