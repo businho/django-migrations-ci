@@ -1,16 +1,15 @@
-from pathlib import Path
-
+from django.conf import settings
+import psycopg2
 import pytest
 
 
-def _rm(pathname):
-    for filename in Path(".").glob(pathname):
-        Path(filename).unlink()
-
-
-@pytest.fixture(autouse=True)
-def remove_sqlite3_files():
-    pathname = "dbtest*.sqlite3"
-    _rm(pathname)
-    yield
-    _rm(pathname)
+@pytest.fixture
+def connection():
+    db_conf = settings.DATABASES["postgresql"]
+    conn = psycopg2.connect(
+        "postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}".format(**db_conf)
+    )
+    try:
+        yield conn
+    finally:
+        conn.close()

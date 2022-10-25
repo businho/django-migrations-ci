@@ -35,8 +35,6 @@ def test_migrateci_cached(mocker):
     # Create empty cache file.
     Path("migrateci-default").touch()
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
-
     execute_from_command_line(["manage.py", "migrateci"])
-
     assert Path("dbtest.sqlite3").exists()
     setup_test_db_mock.assert_not_called()
