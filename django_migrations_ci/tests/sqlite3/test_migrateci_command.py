@@ -23,12 +23,11 @@ def test_migrateci_suffix():
             "migrateci",
             "--parallel",
             "1",
-            "--suffix",
-            "buser",
+            "--pytest",
         ]
     )
     assert Path("dbtest.sqlite3").exists()
-    assert Path("dbtest_buser1.sqlite3").exists()
+    assert Path("dbtest.sqlite3_gw0").exists()
 
 
 def test_migrateci_cached(mocker):

@@ -24,13 +24,26 @@ When cache doesn't exist, run migrations and dump the final state for an SQL fil
 
 Dump and restore are database-specific, but possible to handle all Django supported databases.
 
+## How databases for parallel tests are named
+
+Django test framework has a `--parallel N` flag to test with N parallel processes,
+naming databases from 1 to N.
+
+* On sqlite3, a `db.sqlite3` generate `db_N.sqlite3` files.
+* On PostgreSQL, a `db` generate `test_db_N`.
+
+Pytest `pytest-django` use `pytest-xdist` for parallel support, naming databases
+from 0 to N-1.
+
+* On sqlite3, a `db.sqlite3` generate `db.sqlite3_gwN` files.
+* On PostgreSQL, a `db` generate `test_db_gwN`.
 
 ## Workflow
 
 This is how the "run test" CI job should work.
 
 ```
-restore migrateci.sql from CI cache
+Restore migrateci.sql from CI cache
 
 if migrateci.sql exists on cache:
   Restore migrateci.sql to test database
@@ -39,12 +52,24 @@ else:
   Dump test database to migrateci.sql
 
 Clone the test database to run threaded tests
-save migrateci.sql to CI cache
+
+Save migrateci.sql to CI cache
 ```
 
 ## Cache example on GitHub
 
-TODO #1, I never did it but I'm sure it is possible in some way. See #1
+```
+    steps:
+    - uses: actions/cache@v3
+      name: Cache migrations
+      with:
+        path: migrateci-*
+        key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
+    - name: Migrate database
+      run: ./manage.py migrateci --parallel $(nproc).
+    - name: Test with Django
+      run: ./manage.py test --keepdb
+```
 
 ## Cache example on GitLab
 

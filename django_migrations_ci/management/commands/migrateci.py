@@ -11,10 +11,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--database", default="default")
         parser.add_argument("-n", "--parallel", default=None)
-        # pytest-django uses test_db_gwN, from 1 to N worker processes.
-        parser.add_argument("-s", "--suffix", default="")
+        parser.add_argument(
+            "--pytest",
+            dest="is_pytest",
+            action="store_true",
+            default=False,
+        )
 
-    def handle(self, *args, database, parallel, suffix, **options):
+    def handle(self, *args, database, parallel, is_pytest, **options):
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
@@ -37,5 +41,5 @@ class Command(BaseCommand):
             django.clone_test_db(
                 database=database,
                 parallel=parallel,
-                suffix=suffix,
+                is_pytest=is_pytest,
             )

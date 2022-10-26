@@ -39,21 +39,20 @@ def test_migrateci_postgresql_parallel(db_name):
     assert f"test_{db_name}_3" not in databases
 
 
-def test_migrateci_suffix(db_name):
+def test_migrateci_pytest(db_name):
     execute_from_command_line(
         [
             "manage.py",
             "migrateci",
             "--parallel",
             "1",
-            "--suffix",
-            "buser",
+            "--pytest",
             "--database",
             "postgresql",
         ]
     )
     databases = utils.databases()
-    assert f"test_{db_name}_buser1" in databases
+    assert f"test_{db_name}_gw0" in databases
 
 
 def test_migrateci_cached(mocker):

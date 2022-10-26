@@ -24,8 +24,9 @@ def setup_test_db():
     setup_databases(verbosity=True, interactive=False, aliases=aliases)
 
 
-def clone_test_db(parallel, suffix, database="default"):
+def clone_test_db(parallel, is_pytest=False, database="default"):
     db_conf = settings.DATABASES[database]
+
     try:
         db_conf["NAME"] = db_conf["TEST"]["NAME"]
     except KeyError:
@@ -33,10 +34,15 @@ def clone_test_db(parallel, suffix, database="default"):
 
     connection = connections[database]
 
-    # Based on https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61  # noqa: E501
-    for index in range(1, parallel + 1):
-        connection.creation.clone_test_db(
-            suffix=f"{suffix}{index}",
-            verbosity=True,
-            keepdb=False,
-        )
+    for index in range(parallel):
+        if is_pytest:
+            # pytest-django use test_db_gwN, from 0 to N-1.
+            # e.g. test_db_gw0, test_db_gw1, ...
+            # https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61  # noqa: E501
+            suffix = f"gw{index}"
+        else:
+            # Django use test_db_N, from 1 to N.
+            # e.g. test_db_1, test_db_2, ...
+            suffix = f"{index + 1}"
+
+        connection.creation.clone_test_db(suffix=suffix, verbosity=True, keepdb=False)
