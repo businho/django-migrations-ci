@@ -52,8 +52,6 @@ jobs:
       run: |
         cd example
         ./manage.py migrateci --parallel $(nproc)
-      env:
-        POSTGRES_HOST: postgres
     - name: Test with Django
       run: |
         cd example
