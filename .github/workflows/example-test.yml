@@ -16,7 +16,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v3
@@ -41,6 +52,8 @@ jobs:
       run: |
         cd example
         ./manage.py migrateci --parallel $(nproc)
+      env:
+        POSTGRES_HOST: postgres
     - name: Test with Django
       run: |
         cd example
