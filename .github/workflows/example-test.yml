@@ -40,7 +40,7 @@ jobs:
     - name: Restore database from cache
       run: |
         cd example
-        ./manage.py migrateci $(nproc)
+        ./manage.py migrateci --parallel $(nproc)
     - name: Test with Django
       run: |
         cd example
