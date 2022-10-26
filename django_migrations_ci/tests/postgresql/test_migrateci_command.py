@@ -1,19 +1,27 @@
+import os
 from pathlib import Path
 from shutil import copyfile
 
 from django.core.management import execute_from_command_line
+import pytest
 
 from django_migrations_ci.tests.postgresql import utils
 
 
-def test_migrateci_postgresql():
+@pytest.fixture
+def db_name():
+    # Do not use django settings here, because Django change it in runtime.
+    return os.getenv("POSTGRES_DB", "postgres")
+
+
+def test_migrateci_postgresql(db_name):
     execute_from_command_line(["manage.py", "migrateci", "--database", "postgresql"])
     assert Path("migrateci-postgresql").exists()
     databases = utils.databases()
-    assert "test_django" in databases
+    assert f"test_{db_name}" in databases
 
 
-def test_migrateci_postgresql_parallel():
+def test_migrateci_postgresql_parallel(db_name):
     execute_from_command_line(
         [
             "manage.py",
@@ -25,13 +33,13 @@ def test_migrateci_postgresql_parallel():
         ]
     )
     databases = utils.databases()
-    assert "test_django" in databases
-    assert "test_django_1" in databases
-    assert "test_django_2" in databases
-    assert "test_django_3" not in databases
+    assert f"test_{db_name}" in databases
+    assert f"test_{db_name}_1" in databases
+    assert f"test_{db_name}_2" in databases
+    assert f"test_{db_name}_3" not in databases
 
 
-def test_migrateci_suffix():
+def test_migrateci_suffix(db_name):
     execute_from_command_line(
         [
             "manage.py",
@@ -45,7 +53,7 @@ def test_migrateci_suffix():
         ]
     )
     databases = utils.databases()
-    assert "test_django_buser1" in databases
+    assert f"test_{db_name}_buser1" in databases
 
 
 def test_migrateci_cached(mocker):

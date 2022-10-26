@@ -18,9 +18,8 @@ def setup_test_db():
     aliases = list(settings.DATABASES.keys())
     for alias, db_conf in settings.DATABASES.items():
         test_conf = db_conf.setdefault("TEST", {})
-        if test_conf.get("NAME"):
-            continue
-        test_conf["NAME"] = connections[alias].creation._get_test_db_name()
+        if not test_conf.get("NAME"):
+            test_conf["NAME"] = connections[alias].creation._get_test_db_name()
 
     setup_databases(verbosity=True, interactive=False, aliases=aliases)
 
