@@ -15,6 +15,7 @@ class Command(BaseCommand):
         parser.add_argument("-s", "--suffix", default="")
 
     def handle(self, *args, database, parallel, suffix, **options):
+        print("migrateci.handle")
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
