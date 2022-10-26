@@ -48,7 +48,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r example/requirements.txt
         python -m pip install .
-    - name: Restore database from cache
+    - name: Migrate database
       run: |
         cd example
         ./manage.py migrateci --parallel $(nproc)

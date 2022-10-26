@@ -25,6 +25,12 @@ def setup_test_db():
 
 
 def clone_test_db(parallel, suffix, database="default"):
+    db_conf = settings.DATABASES[database]
+    try:
+        db_conf["NAME"] = db_conf["TEST"]["NAME"]
+    except KeyError:
+        pass
+
     connection = connections[database]
 
     # Based on https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61  # noqa: E501
