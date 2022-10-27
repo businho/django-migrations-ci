@@ -16,7 +16,7 @@ def test_migrateci_parallel():
     assert not Path("dbtest_2.sqlite3").exists()
 
 
-def test_migrateci_suffix():
+def test_migrateci_pytest():
     execute_from_command_line(
         [
             "manage.py",
