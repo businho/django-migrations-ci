@@ -31,6 +31,7 @@ class Command(BaseCommand):
 
         if Path(cached_file).exists():
             print("Database cache exists.")
+            django.create_test_db()
             backend.load(database, cached_file)
         else:
             print("Database cache does not exist.")

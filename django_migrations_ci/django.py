@@ -15,6 +15,13 @@ def get_db_backend(connection):
     return importlib.import_module(vendor_map[connection.vendor])
 
 
+def create_test_db():
+    for connection in connections.all():
+        connection.creation._create_test_db(
+            verbosity=True, autoclobber=True, keepdb=False
+        )
+
+
 def setup_test_db():
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
     aliases = list(settings.DATABASES.keys())
