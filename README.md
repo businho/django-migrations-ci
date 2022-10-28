@@ -1,9 +1,10 @@
 # django-migrations-ci
-Optimizations to run less migrations on CI
+
+Optimizations to run less migrations on CI.
 
 Django migrations are slow because of state recreation for every migration and other internal Django magic.
 
-In the past, I tried to optimize that, but discovered it's a [running issue](https://code.djangoproject.com/ticket/29898).
+In the past, I tried to optimize that on Django core, but learnt it's a [running issue](https://code.djangoproject.com/ticket/29898).
 
 ## Assumptions
 
@@ -11,33 +12,31 @@ In the past, I tried to optimize that, but discovered it's a [running issue](htt
 1. I don't have to run migrations all the time. If migrations didn't change, I can reuse them.
 1. The solutions probably are CI-specific and database-specific, but it is possible to write code for a generic workflow and snippets to support each CI.
 
-## Idea
+## Install
 
-### Generate database state from migrations
-GitLab CI (the one I have more experience, but I'm sure others have similar features) has caching based on versioned files.
+Install the package with pip:
 
-I can cache database state, based on migrations files (and installed dependencies?).
+```
+pip install django-migrations-ci
+```
 
-When cache exists, load this database state (restore?) before your tests and run your tests without migrations.
+Add `django_migrations_ci` to Django settings `INSTALLED_APPS`.
 
-When cache doesn't exist, run migrations and dump the final state for an SQL file.
+```python
+INSTALLED_APPS = [
+    ...,  # other packages
+    "django_migrations_ci",
+]
+```
 
-Dump and restore are database-specific, but possible to handle all Django supported databases.
+## How to use
 
-## How databases for parallel tests are named
+The command `migrateci` execute all migrations and generate dump files `migrateci-*` to be cached on CI.
 
-Django test framework has a `--parallel N` flag to test with N parallel processes,
-naming databases from 1 to N.
+If these files already exist on disk, they are used to prepare the database without running all migrations again.
 
-* On sqlite3, a `db.sqlite3` generate `db_N.sqlite3` files.
-* On PostgreSQL, a `db` generate `test_db_N`.
-
-Pytest `pytest-django` use `pytest-xdist` for parallel support, naming databases
-from 0 to N-1.
-
-* On sqlite3, a `db.sqlite3` generate `db.sqlite3_gwN` files.
-* On PostgreSQL, a `db` generate `test_db_gwN`.
-
+Configure your CI to cache these `migrateci-*` files, based on migration files.
+/
 ## Workflow
 
 This is how the "run test" CI job should work.
@@ -66,9 +65,9 @@ Save migrateci.sql to CI cache
         path: migrateci-*
         key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
     - name: Migrate database
-      run: ./manage.py migrateci --parallel $(nproc).
+      run: ./manage.py migrateci --parallel $(nproc)
     - name: Test with Django
-      run: ./manage.py test --keepdb
+      run: ./manage.py test --keepdb --parallel $(nproc)
 ```
 
 ## Cache example on GitLab
@@ -79,9 +78,8 @@ Still have to abstract `psql/pg_dump/pg_restore`, but I expect something like th
 test_job:
   stage: test
   script:
-    - head migrateci-dbtest.sqlite3 || echo 'migrateci-dbtest.sqlite3 does not exist.'
     - ./manage.py migrateci $(nproc)
-    - pytest --reuse-db -n $(nproc)
+    - ./manage.py test --keepdb --parallel $(nproc)
   cache:
     key:
       # GitLab docs say it accepts only two files, but for some reason it works with wildcards too.
@@ -90,5 +88,19 @@ test_job:
         - "requirements.txt"
         - "*/migrations/*.py"
     paths:
-      - migrateci-dbtest.sqlite3
- ```
+      - migrateci-*
+```
+
+## How databases for parallel tests are named
+
+Django test framework has a `--parallel N` flag to test with N parallel processes,
+naming databases from 1 to N.
+
+* On sqlite3, a `db.sqlite3` generate `db_N.sqlite3` files.
+* On PostgreSQL, a `db` generate `test_db_N`.
+
+Pytest `pytest-django` use `pytest-xdist` for parallel support, naming databases
+from 0 to N-1.
+
+* On sqlite3, a `db.sqlite3` generate `db.sqlite3_gwN` files.
+* On PostgreSQL, a `db` generate `test_db_gwN`.
