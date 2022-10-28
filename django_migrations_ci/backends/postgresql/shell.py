@@ -33,20 +33,6 @@ def _ctx(db_conf):
     return data, env
 
 
-def drop_database(db_conf):
-    ctx, env = _ctx(db_conf)
-    command = (
-        "psql -h {host} -p {port} -U {user} -c 'DROP DATABASE IF EXISTS {database}'"
-    )
-    _exec(command.format(**ctx), env)
-
-
-def create_database(db_conf):
-    ctx, env = _ctx(db_conf)
-    command = "psql -h {host} -p {port} -U {user} -c 'CREATE DATABASE {database}'"
-    _exec(command.format(**ctx), env)
-
-
 def load(db_conf, input_file):
     ctx, env = _ctx(db_conf)
     command = "psql -h {host} -p {port} -U {user} -d {database} -f {input_file}"
