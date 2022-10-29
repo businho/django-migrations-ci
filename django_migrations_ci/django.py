@@ -2,6 +2,7 @@ import importlib
 import os
 import re
 
+from django.conf import settings
 from django.db import connections
 from django.test.utils import setup_databases
 
@@ -23,8 +24,21 @@ def create_test_db():
 
 def setup_test_db():
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
-    aliases = [connection.alias for connection in connections.all()]
+    aliases = []
+    original_db_names = {}
+    for connection in connections.all():
+        aliases.append(connection.alias)
+        original_db_names[connection.alias] = connection.settings_dict["NAME"]
+
     setup_databases(verbosity=True, interactive=False, aliases=aliases)
+
+    # Django setup_databases change original settings and don't care about it
+    # because it run the setup only one time and other parts of testing understand that.
+    for connection in connections.all():
+        original_db_name = original_db_names[connection.alias]
+        connection.close()
+        settings.DATABASES[connection.alias]["NAME"] = original_db_name
+        connection.settings_dict["NAME"] = original_db_name
 
 
 def clone_test_db(parallel, is_pytest=False, database="default"):
