@@ -2,6 +2,7 @@ import importlib
 import os
 import re
 
+from django.conf import settings
 from django.db import connections
 from django.test.utils import setup_databases
 
@@ -29,6 +30,12 @@ def setup_test_db():
 
 def clone_test_db(parallel, is_pytest=False, database="default"):
     connection = connections[database]
+
+    # Override database name with test database name.
+    test_database_name = connection.creation._get_test_db_name()
+    connection.close()
+    settings.DATABASES[database]["NAME"] = test_database_name
+    connection.settings_dict["NAME"] = test_database_name
 
     for index in range(parallel):
         if is_pytest:
