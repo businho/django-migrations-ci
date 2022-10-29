@@ -2,7 +2,6 @@ import importlib
 import os
 import re
 
-from django.conf import settings
 from django.db import connections
 from django.test.utils import setup_databases
 
@@ -24,12 +23,7 @@ def create_test_db():
 
 def setup_test_db():
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
-    aliases = list(settings.DATABASES.keys())
-    for alias, db_conf in settings.DATABASES.items():
-        test_conf = db_conf.setdefault("TEST", {})
-        if not test_conf.get("NAME"):
-            test_conf["NAME"] = connections[alias].creation._get_test_db_name()
-
+    aliases = [connection.alias for connection in connections.all()]
     setup_databases(verbosity=True, interactive=False, aliases=aliases)
 
 
