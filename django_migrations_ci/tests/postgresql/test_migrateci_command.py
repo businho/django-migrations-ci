@@ -15,7 +15,7 @@ def db_name():
 
 
 def test_migrateci_postgresql(db_name):
-    execute_from_command_line(["manage.py", "migrateci", "--database", "postgresql"])
+    execute_from_command_line(["manage.py", "migrateci"])
     assert Path("migrateci-postgresql").exists()
     databases = utils.databases()
     assert f"test_{db_name}" in databases
@@ -28,8 +28,6 @@ def test_migrateci_postgresql_parallel(db_name):
             "migrateci",
             "--parallel",
             "2",
-            "--database",
-            "postgresql",
         ]
     )
     databases = utils.databases()
@@ -47,8 +45,6 @@ def test_migrateci_pytest(db_name):
             "--parallel",
             "1",
             "--pytest",
-            "--database",
-            "postgresql",
         ]
     )
     databases = utils.databases()
@@ -61,7 +57,7 @@ def test_migrateci_cached(mocker):
     copyfile(basepath / "postgres_dump.sql", "migrateci-postgresql")
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
 
-    execute_from_command_line(["manage.py", "migrateci", "--database", "postgresql"])
+    execute_from_command_line(["manage.py", "migrateci"])
     setup_test_db_mock.assert_not_called()
 
 
@@ -70,8 +66,6 @@ def test_migrateci_postgresql_custom_directory(tempdir, db_name):
         [
             "manage.py",
             "migrateci",
-            "--database",
-            "postgresql",
             "--directory",
             tempdir,
         ]
