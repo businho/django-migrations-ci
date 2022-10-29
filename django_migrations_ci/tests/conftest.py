@@ -23,8 +23,12 @@ def reset_database_name():
 
         test_database_name = connection.creation._get_test_db_name()
         connection.close()
+
+        print("DB", database_name, test_database_name)
         settings_dict["NAME"] = test_database_name
         connection.settings_dict["NAME"] = test_database_name
+        settings_test_dict = connection.settings_dict.setdefault("TEST", {})
+        settings_test_dict["NAME"] = test_database_name
 
     yield
 
