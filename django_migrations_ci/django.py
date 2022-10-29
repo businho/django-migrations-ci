@@ -34,14 +34,8 @@ def setup_test_db():
 
 
 def clone_test_db(parallel, is_pytest=False, database="default"):
-    db_conf = settings.DATABASES[database]
-
-    try:
-        db_conf["NAME"] = db_conf["TEST"]["NAME"]
-    except KeyError:
-        pass
-
     connection = connections[database]
+
     for index in range(parallel):
         if is_pytest:
             # pytest-django use test_db_gwN, from 0 to N-1.
@@ -55,12 +49,14 @@ def clone_test_db(parallel, is_pytest=False, database="default"):
 
         connection.creation.clone_test_db(suffix=suffix, verbosity=True, keepdb=False)
 
-        settings_dict = connection.creation.get_test_db_clone_settings(suffix)
-        django_db_name = settings_dict["NAME"]
-        if is_pytest and connection.vendor == "sqlite" and "." in django_db_name:
-            # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
-            # expects db.sqlite3_gw0. Lets rename the file.
-            pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", django_db_name)
+        if is_pytest and connection.vendor == "sqlite":
+            settings_dict = connection.creation.get_test_db_clone_settings(suffix)
+            django_db_name = settings_dict["NAME"]
 
-            # Move db_gw0.sqlite3 to db.sqlite3_gw0.
-            os.rename(django_db_name, pytest_db_name)
+            if "." in django_db_name:
+                # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
+                # expects db.sqlite3_gw0. Lets rename the file.
+                pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", django_db_name)
+
+                # Move db_gw0.sqlite3 to db.sqlite3_gw0.
+                os.rename(django_db_name, pytest_db_name)
