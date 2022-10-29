@@ -41,20 +41,7 @@ def setup_test_db():
         connection.settings_dict["NAME"] = database_name
 
 
-def clone_test_db(parallel, is_pytest=False, database="default"):
-    connection = connections[database]
-
-    # Django clone_test_db trust setup_databases already changed original settings,
-    # so I have to do that here.
-    try:
-        test_db_name = connection.settings_dict["TEST"]["NAME"]
-    except KeyError:
-        pass
-    else:
-        if test_db_name:
-            connection.settings_dict["NAME"] = test_db_name
-            settings.DATABASES[connection.alias]["NAME"] = test_db_name
-
+def clone_test_db(connection, parallel, is_pytest=False):
     for index in range(parallel):
         if is_pytest:
             # pytest-django use test_db_gwN, from 0 to N-1.
