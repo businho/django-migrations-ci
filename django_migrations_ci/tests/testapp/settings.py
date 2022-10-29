@@ -34,5 +34,3 @@ DATABASES = {
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     },
 }
-
-ROOT_URLCONF = "django_migrations_ci.tests.testapp.urls"
