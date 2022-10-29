@@ -1,5 +1,7 @@
+from contextlib import contextmanager
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connections
 from django.test.runner import get_max_test_processes
@@ -33,15 +35,41 @@ class Command(BaseCommand):
         if Path(cached_file).exists():
             print("Database cache exists.")
             django.create_test_db()
-            backend.load(database, cached_file)
+            with _override_test_db(connection):
+                backend.load(connection, cached_file)
         else:
             print("Database cache does not exist.")
             django.setup_test_db()
-            backend.dump(database, cached_file)
+            backend.dump(connection, cached_file)
 
         if parallel:
-            django.clone_test_db(
-                database=database,
-                parallel=parallel,
-                is_pytest=is_pytest,
-            )
+            with _override_test_db(connection):
+                django.clone_test_db(
+                    connection=connection,
+                    parallel=parallel,
+                    is_pytest=is_pytest,
+                )
+
+
+@contextmanager
+def _override_test_db(connection):
+    # Django clone_test_db trust setup_databases already changed original settings,
+    # so I have to do that here.
+    try:
+        test_db_name = connection.settings_dict["TEST"]["NAME"]
+    except KeyError:
+        test_db_name = None
+
+    if not test_db_name:
+        test_db_name = connection.creation._get_test_db_name()
+
+    db_name = connection.settings_dict["NAME"]
+    connection.settings_dict["NAME"] = test_db_name
+    settings.DATABASES[connection.alias]["NAME"] = test_db_name
+    connection.close()
+
+    yield
+
+    connection.settings_dict["NAME"] = db_name
+    settings.DATABASES[connection.alias]["NAME"] = db_name
+    connection.close()
