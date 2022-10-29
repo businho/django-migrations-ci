@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import tempfile
 
 import pytest
 
@@ -20,3 +21,10 @@ def remove_cached_files():
     _rm(pathname)
     yield
     _rm(pathname)
+
+
+@pytest.fixture
+def tempdir():
+    directory = tempfile.TemporaryDirectory()
+    with directory:
+        yield directory.name

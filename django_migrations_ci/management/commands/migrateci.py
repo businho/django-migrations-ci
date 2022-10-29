@@ -17,15 +17,16 @@ class Command(BaseCommand):
             action="store_true",
             default=False,
         )
+        parser.add_argument("--directory", default="")
 
-    def handle(self, *args, database, parallel, is_pytest, **options):
+    def handle(self, *args, database, parallel, is_pytest, directory, **options):
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
             parallel = int(parallel)
 
         connection = connections[database]
-        cached_file = f"migrateci-{database}"
+        cached_file = Path(directory) / Path(f"migrateci-{database}")
 
         backend = django.get_db_backend(connection)
 

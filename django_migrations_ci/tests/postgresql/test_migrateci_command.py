@@ -63,3 +63,19 @@ def test_migrateci_cached(mocker):
 
     execute_from_command_line(["manage.py", "migrateci", "--database", "postgresql"])
     setup_test_db_mock.assert_not_called()
+
+
+def test_migrateci_postgresql_custom_directory(tempdir, db_name):
+    execute_from_command_line(
+        [
+            "manage.py",
+            "migrateci",
+            "--database",
+            "postgresql",
+            "--directory",
+            tempdir,
+        ]
+    )
+    assert Path(f"{tempdir}/migrateci-postgresql").exists()
+    databases = utils.databases()
+    assert f"test_{db_name}" in databases
