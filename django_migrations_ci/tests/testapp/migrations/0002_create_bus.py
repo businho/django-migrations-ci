@@ -5,7 +5,7 @@ from django.db import migrations
 
 def create_one_bus(apps, schema_editor):
     Bus = apps.get_model("testapp", "Bus")
-    Bus.objects.create()
+    Bus.objects.create(plate="BUS3R")
 
 
 class Migration(migrations.Migration):
