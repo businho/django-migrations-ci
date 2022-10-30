@@ -35,5 +35,5 @@ def _ctx(db_conf):
 
 def dump(db_conf, output_file):
     ctx, env = _ctx(db_conf)
-    pg_dump = "pg_dump -Fp --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"
+    pg_dump = "pg_dump -Fp --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
     _exec(pg_dump.format(output_file=output_file, **ctx), env)
