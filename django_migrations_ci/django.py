@@ -101,3 +101,15 @@ def test_db(connection, suffix=""):
         connection.settings_dict["NAME"] = db_name
         settings.DATABASES[connection.alias]["NAME"] = db_name
         connection.close()
+
+
+def load(connection, input_file):
+    with open(input_file, "r") as f:
+        sql = f.read()
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+
+
+def dump(connection, output_file):
+    backend = django.get_db_backend(connection)
+    backend.dump(connection, output_file)

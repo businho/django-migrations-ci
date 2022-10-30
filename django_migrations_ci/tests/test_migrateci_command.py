@@ -31,7 +31,7 @@ def test_migrateci_parallel():
         _check_db(connection, suffix="2")
     except OperationalError:
         pass
-    else:
+    else:  # pragma: nocover
         pytest.fail("Database 2 should not exist here.")
 
 
@@ -52,7 +52,7 @@ def test_migrateci_pytest():
         _check_db(connection, suffix="gw1")
     except OperationalError:
         pass
-    else:
+    else:  # pragma: nocover
         pytest.fail("Database gw1 should not exist here.")
 
 

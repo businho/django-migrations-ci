@@ -34,19 +34,17 @@ class Command(BaseCommand):
             django.create_test_db()
 
             for connection in connections.all():
-                backend = django.get_db_backend(connection)
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
-                    backend.load(connection, cached_file)
+                    django.load(connection, cached_file)
         else:
             print("Database cache does not exist.")
             django.setup_test_db()
 
             for connection in connections.all():
-                backend = django.get_db_backend(connection)
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
-                    backend.dump(connection, cached_file)
+                    django.dump(connection, cached_file)
 
         if parallel:
             for connection in connections.all():
