@@ -7,15 +7,10 @@ def dump(connection, output_file):
     """
     ctx, env = _ctx(connection.settings_dict)
     pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
-    breakpoint()
     _exec(pg_dump.format(output_file=output_file, **ctx), env)
 
 
 def _exec(command, env):
-    if "test_test" in command:
-        raise Exception(command)
-
-    print("EXEC", command)
     p = Popen(
         command,
         shell=True,
