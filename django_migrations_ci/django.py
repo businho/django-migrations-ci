@@ -8,7 +8,7 @@ from django.db import connections
 from django.test.utils import setup_databases
 
 
-def get_db_backend(connection):
+def _get_db_backend(connection):
     vendor_map = {
         "sqlite": "django_migrations_ci.backends.sqlite3",
         "postgresql": "django_migrations_ci.backends.postgresql",
@@ -107,9 +107,14 @@ def load(connection, input_file):
     with open(input_file, "r") as f:
         sql = f.read()
     with connection.cursor() as cursor:
-        cursor.execute(sql)
+        if connection.vendor == "sqlite":
+            # sqlite3 can't use execute() to run many statements, it fails with
+            # "sqlite3.Warning: You can only execute one statement at a time."
+            cursor.executescript(sql)
+        else:
+            cursor.execute(sql)
 
 
 def dump(connection, output_file):
-    backend = django.get_db_backend(connection)
+    backend = _get_db_backend(connection)
     backend.dump(connection, output_file)
