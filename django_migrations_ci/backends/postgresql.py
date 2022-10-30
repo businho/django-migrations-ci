@@ -1,7 +1,21 @@
 from subprocess import PIPE, Popen
 
 
+def dump(connection, output_file):
+    """
+    pg_dump -Fp -h $DB_HOST -U $POSTGRES_USER test_foo -f migrateci-postgresql
+    """
+    ctx, env = _ctx(connection.settings_dict)
+    pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
+    breakpoint()
+    _exec(pg_dump.format(output_file=output_file, **ctx), env)
+
+
 def _exec(command, env):
+    if "test_test" in command:
+        raise Exception(command)
+
+    print("EXEC", command)
     p = Popen(
         command,
         shell=True,
@@ -31,9 +45,3 @@ def _ctx(db_conf):
         "database": database,
     }
     return data, env
-
-
-def dump(db_conf, output_file):
-    ctx, env = _ctx(db_conf)
-    pg_dump = "pg_dump -Fp --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
-    _exec(pg_dump.format(output_file=output_file, **ctx), env)
