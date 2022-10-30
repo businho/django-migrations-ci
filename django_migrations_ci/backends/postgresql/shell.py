@@ -33,13 +33,7 @@ def _ctx(db_conf):
     return data, env
 
 
-def load(db_conf, input_file):
-    ctx, env = _ctx(db_conf)
-    command = "psql -h {host} -p {port} -U {user} -d {database} -f {input_file}"
-    _exec(command.format(input_file=input_file, **ctx), env)
-
-
 def dump(db_conf, output_file):
     ctx, env = _ctx(db_conf)
-    pg_dump = "pg_dump -Fp -h {host} -p {port} -U {user} -d {database} -f {output_file}"
+    pg_dump = "pg_dump -Fp --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"
     _exec(pg_dump.format(output_file=output_file, **ctx), env)

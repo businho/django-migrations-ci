@@ -12,7 +12,8 @@ from django_migrations_ci import django
 def _check_db(connection, suffix=""):
     with django.test_db(connection, suffix=suffix):
         with connection.cursor() as conn:
-            result = conn.execute("SELECT * FROM testapp_bus").fetchall()
+            conn.execute("SELECT * FROM testapp_bus")
+            result = conn.fetchall()
     assert result == [(1, "BUS3R")]
 
 
@@ -23,7 +24,6 @@ def test_migrateci():
 
 def test_migrateci_parallel():
     execute_from_command_line(["manage.py", "migrateci", "--parallel", "1"])
-
     connection = connections["default"]
     _check_db(connection)
     _check_db(connection, suffix="1")
@@ -59,7 +59,8 @@ def test_migrateci_pytest():
 def test_migrateci_cached(mocker):
     # Create empty cache file.
     basepath = Path(__file__).parent
-    shutil.copyfile(basepath / "dump.sql", "migrateci-default")
+    connection = connections["default"]
+    shutil.copyfile(basepath / f"dump_{connection.vendor}.sql", "migrateci-default")
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     execute_from_command_line(["manage.py", "migrateci"])
     setup_test_db_mock.assert_not_called()

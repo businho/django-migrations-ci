@@ -95,8 +95,9 @@ def test_db(connection, suffix=""):
     settings.DATABASES[connection.alias]["NAME"] = test_db_name
     connection.close()
 
-    yield
-
-    connection.settings_dict["NAME"] = db_name
-    settings.DATABASES[connection.alias]["NAME"] = db_name
-    connection.close()
+    try:
+        yield
+    finally:
+        connection.settings_dict["NAME"] = db_name
+        settings.DATABASES[connection.alias]["NAME"] = db_name
+        connection.close()

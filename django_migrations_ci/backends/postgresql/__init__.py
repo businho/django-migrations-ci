@@ -5,7 +5,10 @@ def load(connection, input_file):
     """
     psql -h $HOST -p $PORT -U $USER -d test_foo -f migrate-postgresql
     """
-    shell.load(connection.settings_dict, input_file)
+    with open(input_file, "r") as f:
+        sql = f.read()
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
 
 
 def dump(connection, output_file):
