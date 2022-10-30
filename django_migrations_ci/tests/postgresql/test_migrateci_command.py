@@ -16,7 +16,7 @@ def db_name():
 
 def test_migrateci_postgresql(db_name):
     execute_from_command_line(["manage.py", "migrateci"])
-    assert Path("migrateci-postgresql").exists()
+    assert Path("migrateci-default").exists()
     databases = utils.databases()
     assert f"test_{db_name}" in databases
 
@@ -54,7 +54,7 @@ def test_migrateci_pytest(db_name):
 def test_migrateci_cached(mocker):
     # Create empty cache file.
     basepath = Path(__file__).parent
-    copyfile(basepath / "postgres_dump.sql", "migrateci-postgresql")
+    copyfile(basepath / "postgres_dump.sql", "migrateci-default")
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
 
     execute_from_command_line(["manage.py", "migrateci"])
@@ -70,6 +70,6 @@ def test_migrateci_postgresql_custom_directory(tempdir, db_name):
             tempdir,
         ]
     )
-    assert Path(f"{tempdir}/migrateci-postgresql").exists()
+    assert Path(f"{tempdir}/migrateci-default").exists()
     databases = utils.databases()
     assert f"test_{db_name}" in databases

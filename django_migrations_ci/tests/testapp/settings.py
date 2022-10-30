@@ -1,8 +1,5 @@
+import importlib
 import os
-from pathlib import Path
-
-# Build paths inside the project like this: BASE_DIR / "subdir".
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 USE_TZ = True
 
@@ -17,20 +14,6 @@ INSTALLED_APPS = [
     "django_migrations_ci",
 ]
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        "TEST": {
-            "NAME": "dbtest.sqlite3",
-        },
-    },
-    "postgresql": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "postgres"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    },
-}
+_DATABASES_MODULE = os.getenv("DATABASES_MODULE", "sqlite3")
+DATABASES_MODULE = f"django_migrations_ci.tests.testapp.settings_{_DATABASES_MODULE}"
+DATABASES = importlib.import_module(DATABASES_MODULE).DATABASES

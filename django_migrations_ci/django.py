@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import importlib
 import os
 import re
@@ -66,3 +67,36 @@ def clone_test_db(connection, parallel, is_pytest=False):
 
                 # Move db_gw0.sqlite3 to db.sqlite3_gw0.
                 os.rename(django_db_name, pytest_db_name)
+
+
+@contextmanager
+def test_db(connection, suffix=""):
+    # Django clone_test_db trust setup_databases already changed original settings,
+    # so I have to do that here.
+    try:
+        test_db_name = connection.settings_dict["TEST"]["NAME"]
+    except KeyError:
+        test_db_name = None
+
+    if not test_db_name:
+        test_db_name = connection.creation._get_test_db_name()
+
+    if suffix:
+        if connection.vendor == "sqlite" and "." in test_db_name:
+            # db.sqlite3_1 to db_1.sqlite3.
+            test_db_name = re.sub(r"(.+)(\..+)$", rf"\1_{suffix}\2", test_db_name)
+            # db_gw1.sqlite3 to db.sqlite3_gw1
+            test_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", test_db_name)
+        else:
+            test_db_name += f"_{suffix}"
+
+    db_name = connection.settings_dict["NAME"]
+    connection.settings_dict["NAME"] = test_db_name
+    settings.DATABASES[connection.alias]["NAME"] = test_db_name
+    connection.close()
+
+    yield
+
+    connection.settings_dict["NAME"] = db_name
+    settings.DATABASES[connection.alias]["NAME"] = db_name
+    connection.close()
