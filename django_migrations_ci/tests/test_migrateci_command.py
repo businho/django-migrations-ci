@@ -14,7 +14,7 @@ def _check_db(connection, suffix=""):
         with connection.cursor() as conn:
             conn.execute("SELECT * FROM testapp_bus")
             result = conn.fetchall()
-    assert result == [(1, "BUS3R")]
+    assert list(result) == [(1, "BUS3R")]
 
 
 def test_migrateci():

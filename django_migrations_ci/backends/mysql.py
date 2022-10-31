@@ -3,12 +3,12 @@ from django_migrations_ci import shell
 
 def dump(connection, output_file):
     ctx, env = _ctx(connection.settings_dict)
-    pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
-    shell.exec(pg_dump.format(output_file=output_file, **ctx), env)
+    mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database} --result-file {output_file}"  # noqa: E501
+    shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
 
 
 def _ctx(db_conf):
-    env = {"PGPASSWORD": db_conf["PASSWORD"]}
+    env = {"MYSQL_PWD": db_conf["PASSWORD"]}
     try:
         database = db_conf["TEST"]["NAME"] or db_conf["NAME"]
     except KeyError:
