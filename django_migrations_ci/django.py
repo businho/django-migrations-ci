@@ -12,7 +12,7 @@ def _get_db_backend(connection):
     vendor_map = {
         "mysql": "django_migrations_ci.backends.mysql",
         "postgresql": "django_migrations_ci.backends.postgresql",
-        "sqlite": "django_migrations_ci.backends.sqlite3",
+        "sqlite": "django_migrations_ci.backends.sqlite",
     }
     return importlib.import_module(vendor_map[connection.vendor])
 

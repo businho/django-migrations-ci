@@ -118,7 +118,9 @@ In the past, I tried to optimize that on Django core, but learnt it's a [running
 * postgresql
 * sqlite3
 
-SQLite in memory is not supported yet.
+Django default run sqlite3 tests as in memory database and does not work because
+`migrateci` runs in a different process. Add a test database name to settings,
+like [sqlite test settings](django_migrations_ci/tests/testapp/settings_sqlite.py).
 
 Django supports oracle, but the dump function is not implemented here.
 
