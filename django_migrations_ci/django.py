@@ -10,8 +10,9 @@ from django.test.utils import setup_databases
 
 def _get_db_backend(connection):
     vendor_map = {
-        "sqlite": "django_migrations_ci.backends.sqlite3",
+        "mysql": "django_migrations_ci.backends.mysql",
         "postgresql": "django_migrations_ci.backends.postgresql",
+        "sqlite": "django_migrations_ci.backends.sqlite3",
     }
     return importlib.import_module(vendor_map[connection.vendor])
 
