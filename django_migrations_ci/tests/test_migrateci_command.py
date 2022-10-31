@@ -60,7 +60,7 @@ def test_migrateci_cached(mocker):
     # Create empty cache file.
     basepath = Path(__file__).parent
     connection = connections["default"]
-    shutil.copyfile(basepath / f"dump_{connection.vendor}.sql", "migrateci-default")
+    shutil.copyfile(basepath / f"dump/{connection.vendor}.sql", "migrateci-default")
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     execute_from_command_line(["manage.py", "migrateci"])
     setup_test_db_mock.assert_not_called()
