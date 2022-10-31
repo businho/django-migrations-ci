@@ -18,7 +18,7 @@ class Command(BaseCommand):
         )
         parser.add_argument("--directory", default="")
 
-    def handle(self, *args, parallel, is_pytest, directory, **options):
+    def handle(self, *args, parallel, is_pytest, directory, verbosity, **options):
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
         if all(f.exists() for f in cached_files.values()):
             print("Database cache exists.")
-            django.create_test_db()
+            django.create_test_db(verbosity=verbosity)
 
             for connection in connections.all():
                 cached_file = cached_files[connection.alias]
@@ -39,7 +39,7 @@ class Command(BaseCommand):
                     django.load(connection, cached_file)
         else:
             print("Database cache does not exist.")
-            django.setup_test_db()
+            django.setup_test_db(verbosity=verbosity)
 
             for connection in connections.all():
                 cached_file = cached_files[connection.alias]
@@ -53,4 +53,5 @@ class Command(BaseCommand):
                         connection=connection,
                         parallel=parallel,
                         is_pytest=is_pytest,
+                        verbosity=verbosity,
                     )

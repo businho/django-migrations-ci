@@ -17,14 +17,14 @@ def _get_db_backend(connection):
     return importlib.import_module(vendor_map[connection.vendor])
 
 
-def create_test_db():
+def create_test_db(*, verbosity=1):
     for connection in connections.all():
         connection.creation._create_test_db(
             verbosity=True, autoclobber=True, keepdb=False
         )
 
 
-def setup_test_db():
+def setup_test_db(*, verbosity=1):
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
     aliases = []
     database_names = {}
@@ -43,7 +43,7 @@ def setup_test_db():
         connection.settings_dict["NAME"] = database_name
 
 
-def clone_test_db(connection, parallel, is_pytest=False):
+def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
     for index in range(parallel):
         if is_pytest:
             # pytest-django use test_db_gwN, from 0 to N-1.
