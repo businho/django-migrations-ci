@@ -130,10 +130,10 @@ Django test framework has a `--parallel N` flag to test with N parallel processe
 naming databases from 1 to N.
 
 * On sqlite3, a `db.sqlite3` generate `db_N.sqlite3` files.
-* On PostgreSQL, a `db` generate `test_db_N`.
+* On other databases, a `db` generate `test_db_N`.
 
 Pytest `pytest-django` use `pytest-xdist` for parallel support, naming databases
 from 0 to N-1.
 
 * On sqlite3, a `db.sqlite3` generate `db.sqlite3_gwN` files.
-* On PostgreSQL, a `db` generate `test_db_gwN`.
+* On other databases, a `db` generate `test_db_gwN`.
