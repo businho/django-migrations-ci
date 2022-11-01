@@ -2,7 +2,17 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.db import connections
-from django.test.runner import get_max_test_processes
+
+try:
+    from django.test.runner import get_max_test_processes
+except ImportError:
+    # Django<4
+    def get_max_test_processes():
+        raise Exception(
+            "Django<4 do not implement get_max_test_processes."
+            " Use --parallel $(nproc) to not depend on this."
+        )
+
 
 from django_migrations_ci import django
 
