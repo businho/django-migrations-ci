@@ -57,14 +57,17 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
 
         connection.creation.clone_test_db(suffix=suffix, verbosity=True, keepdb=False)
 
-        if is_pytest and connection.vendor == "sqlite":
+        if connection.vendor == "sqlite":
             settings_dict = connection.creation.get_test_db_clone_settings(suffix)
             django_db_name = settings_dict["NAME"]
 
             if "." in django_db_name:
+                # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
+                # it is cleaned here to db_1.sqlite3.
+                clean_db_name = re.sub(r"\.+", ".", django_db_name)
                 # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
                 # expects db.sqlite3_gw0. Lets rename the file.
-                pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", django_db_name)
+                pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", clean_db_name)
 
                 # Move db_gw0.sqlite3 to db.sqlite3_gw0.
                 os.rename(django_db_name, pytest_db_name)
