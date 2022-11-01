@@ -61,13 +61,13 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             settings_dict = connection.creation.get_test_db_clone_settings(suffix)
             django_db_name = settings_dict["NAME"]
 
-            if "." in django_db_name:
+            if is_pytest and "." in django_db_name:
                 # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
                 # it is cleaned here to db_1.sqlite3.
                 clean_db_name = re.sub(r"\.+", ".", django_db_name)
                 # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
                 # expects db.sqlite3_gw0. Lets rename the file.
-                pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", clean_db_name)
+                pytest_db_name = re.sub(r"(_gw\d+)(\.)+(.+)$", r".\3\1", clean_db_name)
 
                 # Move db_gw0.sqlite3 to db.sqlite3_gw0.
                 os.rename(django_db_name, pytest_db_name)
@@ -86,11 +86,19 @@ def test_db(connection, suffix=""):
         test_db_name = connection.creation._get_test_db_name()
 
     if suffix:
-        if connection.vendor == "sqlite" and "." in test_db_name:
+        if connection.vendor == "sqlite":
+            settings_dict = connection.creation.get_test_db_clone_settings(suffix)
+            _generated_db_name = settings_dict["NAME"]
+            # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
+            # or if it does not have an extension, database name will end with a dot.
+            has_dot_bug = ".." in _generated_db_name or _generated_db_name.endswith(".")
+            if has_dot_bug:
+                suffix += "."
+
             # db.sqlite3_1 to db_1.sqlite3.
             test_db_name = re.sub(r"(.+)(\..+)$", rf"\1_{suffix}\2", test_db_name)
             # db_gw1.sqlite3 to db.sqlite3_gw1
-            test_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", test_db_name)
+            test_db_name = re.sub(r"(_gw\d+)\.+(.+)$", r".\2\1", test_db_name)
         else:
             test_db_name += f"_{suffix}"
 
