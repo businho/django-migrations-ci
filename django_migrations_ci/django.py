@@ -62,15 +62,19 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             django_db_name = settings_dict["NAME"]
 
             if "." in django_db_name:
-                # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
-                # it is cleaned here to db_1.sqlite3.
-                clean_db_name = re.sub(r"\.+", ".", django_db_name)
-                # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
-                # expects db.sqlite3_gw0. Lets rename the file.
-                pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", clean_db_name)
-
                 # Move db_gw0.sqlite3 to db.sqlite3_gw0.
-                os.rename(django_db_name, pytest_db_name)
+                os.rename(django_db_name, _transform_sqlite_db_name(django_db_name))
+
+
+def _transform_sqlite_db_name(db_name):
+    # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
+    # it is cleaned here to db_1.sqlite3. If db does not have an extension,
+    # it'll end with a dot, so "db." is cleaned to "db" (no trailing dot).
+    clean_db_name = re.sub(r"\.+", ".", db_name.rstrip("."))
+    # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
+    # expects db.sqlite3_gw0. Lets rename the file.
+    pytest_db_name = re.sub(r"(_gw\d+)\.(.+)$", r".\2\1", clean_db_name)
+    return pytest_db_name
 
 
 @contextmanager
