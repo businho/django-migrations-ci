@@ -60,17 +60,19 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
         if connection.vendor == "sqlite":
             settings_dict = connection.creation.get_test_db_clone_settings(suffix)
             django_db_name = settings_dict["NAME"]
-
             if is_pytest and "." in django_db_name:
-                # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
-                # it is cleaned here to db_1.sqlite3.
-                clean_db_name = re.sub(r"\.+", ".", django_db_name)
-                # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
-                # expects db.sqlite3_gw0. Lets rename the file.
-                pytest_db_name = re.sub(r"(_gw\d+)(\.)+(.+)$", r".\3\1", clean_db_name)
-
                 # Move db_gw0.sqlite3 to db.sqlite3_gw0.
-                os.rename(django_db_name, pytest_db_name)
+                os.rename(django_db_name, _fix_sqlite_pytest_suffix(django_db_name))
+
+
+def _fix_sqlite_pytest_suffix(db_name):
+    # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
+    # it is cleaned here to db_1.sqlite3.
+    clean_db_name = re.sub(r"\.+", ".", db_name)
+    # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
+    # expects db.sqlite3_gw0. Lets rename the file.
+    pytest_db_name = re.sub(r"(_gw\d+)(\.)+(.+)$", r".\3\1", clean_db_name)
+    return pytest_db_name
 
 
 @contextmanager
@@ -91,14 +93,10 @@ def test_db(connection, suffix=""):
             _generated_db_name = settings_dict["NAME"]
             # Django<4 generate sqlite3 names with two dots, like db_1..sqlite3,
             # or if it does not have an extension, database name will end with a dot.
-            has_dot_bug = ".." in _generated_db_name or _generated_db_name.endswith(".")
-            if has_dot_bug:
-                suffix += "."
-
-            # db.sqlite3_1 to db_1.sqlite3.
-            test_db_name = re.sub(r"(.+)(\..+)$", rf"\1_{suffix}\2", test_db_name)
-            # db_gw1.sqlite3 to db.sqlite3_gw1
-            test_db_name = re.sub(r"(_gw\d+)\.+(.+)$", r".\2\1", test_db_name)
+            dotbug = ".." in _generated_db_name or _generated_db_name.endswith(".")
+            test_db_name = _transform_sqlite_db_name(
+                test_db_name, suffix=suffix, dotbug=dotbug
+            )
         else:
             test_db_name += f"_{suffix}"
 
@@ -113,6 +111,19 @@ def test_db(connection, suffix=""):
         connection.settings_dict["NAME"] = db_name
         settings.DATABASES[connection.alias]["NAME"] = db_name
         connection.close()
+
+
+def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
+    if suffix:
+        suffix = f"_{suffix}"
+    if dotbug:
+        suffix += "."
+
+    # db.sqlite3_1 to db_1.sqlite3.
+    db_name = re.sub(r"(.+)(\..+)$", rf"\1{suffix}\2", db_name)
+    # db_gw1.sqlite3 to db.sqlite3_gw1
+    db_name = re.sub(r"(_gw\d+)\.+(.+)$", r".\2\1", db_name)
+    return db_name
 
 
 def load(connection, input_file):
