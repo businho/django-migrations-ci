@@ -18,6 +18,9 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11"]
         vendor: ["mysql", "postgresql", "sqlite"]
+        django: [
+          "django<3.2", "django<4", "django<4.1", "django<4.2", "django",
+        ]
 
     services:
       postgres:
@@ -52,6 +55,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        python -m pip install "${{ matrix.django }}"
         sudo apt install -y mysql-client
     - name: Test with pytest
       run: |
