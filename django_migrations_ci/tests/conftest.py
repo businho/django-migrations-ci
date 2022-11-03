@@ -26,7 +26,7 @@ def remove_cached_files():
 
 @pytest.fixture(autouse=True)
 def remove_sqlite3_files():
-    pathname = "dbtest*.sqlite3"
+    pathname = "dbtest*.sqlite3*"
     _rm(pathname)
     yield
     _rm(pathname)
