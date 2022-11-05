@@ -1,8 +1,11 @@
 from contextlib import contextmanager
+import hashlib
 import importlib
+from pathlib import Path
 import os
 import re
 
+from django.apps import apps
 from django.conf import settings
 from django.db import connections
 from django.test.utils import setup_databases
@@ -141,3 +144,18 @@ def load(connection, input_file):
 def dump(connection, output_file):
     backend = _get_db_backend(connection)
     backend.dump(connection, output_file)
+
+
+def hash_files(*files):
+    files = list(files)
+    for app_config in apps.app_configs.values():
+        path = Path(app_config.path)
+        for migration_file in path.glob("migrations/*.py"):
+            files.append(migration_file)
+
+    checksum = hashlib.md5()
+    for _file in files:
+        with open(_file, "rb") as f:
+            checksum.update(f.read())
+
+    return checksum.hexdigest()
