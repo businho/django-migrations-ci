@@ -154,7 +154,7 @@ def hash_files(*files):
             files.append(migration_file)
 
     checksum = hashlib.md5()
-    for _file in files:
+    for _file in sorted(files):
         with open(_file, "rb") as f:
             checksum.update(f.read())
 

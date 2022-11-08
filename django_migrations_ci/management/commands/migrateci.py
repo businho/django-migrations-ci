@@ -42,7 +42,7 @@ class Command(BaseCommand):
             suffix = f"-{django.hash_files()}"
 
         cached_files = {
-            connection.alias: Path(directory) / Path(f"migrateci-{connection.alias}{suffix}")
+            connection.alias: Path(directory) / f"migrateci-{connection.alias}{suffix}"
             for connection in connections.all()
         }
 
