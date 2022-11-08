@@ -106,6 +106,19 @@ test_job:
       - migrateci-*
 ```
 
+## Local migration caching
+
+It is not possible to use "CI caching" for local runs, but we can use a folder
+to cache on disk. Use `--local` option to add a suffix checksum to save a state
+to disk and reuse it when it is available.
+
+```shell
+./manage.py migrateci --parallel $(nproc) --local --directory ~/.migrateci
+./manage.py test --keepdb --parallel $(nproc)
+```
+
+It works with `pytest-django` too.
+
 ## Why migrations are slow?
 
 Django migrations are slow because of state recreation for every migration and other internal Django magic.
