@@ -27,15 +27,22 @@ class Command(BaseCommand):
             default=False,
         )
         parser.add_argument("--directory", default="")
+        parser.add_argument("--local", action="store_true", default=False)
 
-    def handle(self, *args, parallel, is_pytest, directory, verbosity, **options):
+    def handle(
+        self, *args, parallel, is_pytest, local, directory, verbosity, **options
+    ):
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
             parallel = int(parallel)
 
+        suffix = ""
+        if local:
+            suffix = f"-{django.hash_files()}"
+
         cached_files = {
-            connection.alias: Path(directory) / Path(f"migrateci-{connection.alias}")
+            connection.alias: Path(directory) / f"migrateci-{connection.alias}{suffix}"
             for connection in connections.all()
         }
 
