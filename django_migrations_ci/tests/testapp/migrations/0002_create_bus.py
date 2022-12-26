@@ -9,7 +9,6 @@ def create_one_bus(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("testapp", "0001_initial"),
     ]
