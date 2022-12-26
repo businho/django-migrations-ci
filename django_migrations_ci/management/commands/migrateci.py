@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
-from django.db import connections
 
 try:
     from django.test.runner import get_max_test_processes
@@ -41,12 +40,7 @@ class Command(BaseCommand):
         if local:
             suffix = f"-{django.hash_files()}"
 
-        unique_connections = [
-            connection
-            for connection in connections.all()
-            if not connection.settings_dict.get("TEST", {}).get("MIRROR")
-        ]
-
+        unique_connections = django.get_unique_connections()
         cached_files = {
             connection.alias: Path(directory) / f"migrateci-{connection.alias}{suffix}"
             for connection in unique_connections

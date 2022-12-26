@@ -2,8 +2,9 @@ import os
 from pathlib import Path
 import tempfile
 
-from django.db import connections
 import pytest
+
+from django_migrations_ci import django
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -34,7 +35,7 @@ def remove_sqlite3_files():
 
 @pytest.fixture(autouse=True)
 def drop_postgresql_test_databases():
-    for connection in connections.all():
+    for connection in django.get_unique_connections():
         if connection.vendor != "postgresql":
             continue
         with connection.cursor() as cursor:
