@@ -47,7 +47,7 @@ This is how the "run test" CI job should work.
 It works with `pytest-django` too:
 
 ```shell
-./manage.py migrateci
+./manage.py migrateci --pytest
 pytest --reuse-db
 ```
 
