@@ -70,5 +70,5 @@ def test_migrateci_cached(mocker):
 def test_migrateci_local():
     execute_from_command_line(["manage.py", "migrateci", "--local"])
     _check_db(connections["default"])
-    checksum = "c164b83af0a273d0da5fe0037404235b"
+    checksum = "b2bed1815363a843fdc8403d36497ddd"
     assert Path(f"migrateci-default-{checksum}").exists()

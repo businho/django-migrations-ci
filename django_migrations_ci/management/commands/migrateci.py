@@ -42,7 +42,8 @@ class Command(BaseCommand):
             suffix = f"-{django.hash_files()}"
 
         unique_connections = [
-            connection for connection in connections.all()
+            connection
+            for connection in connections.all()
             if not connection.settings_dict.get("TEST", {}).get("MIRROR")
         ]
 
