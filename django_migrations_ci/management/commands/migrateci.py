@@ -41,16 +41,21 @@ class Command(BaseCommand):
         if local:
             suffix = f"-{django.hash_files()}"
 
+        unique_connections = [
+            connection for connection in connections.all()
+            if not connection.settings_dict.get("TEST", {}).get("MIRROR")
+        ]
+
         cached_files = {
             connection.alias: Path(directory) / f"migrateci-{connection.alias}{suffix}"
-            for connection in connections.all()
+            for connection in unique_connections
         }
 
         if all(f.exists() for f in cached_files.values()):
             print("Database cache exists.")
             django.create_test_db(verbosity=verbosity)
 
-            for connection in connections.all():
+            for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
                     django.load(connection, cached_file)
@@ -58,13 +63,13 @@ class Command(BaseCommand):
             print("Database cache does not exist.")
             django.setup_test_db(verbosity=verbosity)
 
-            for connection in connections.all():
+            for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
                     django.dump(connection, cached_file)
 
         if parallel:
-            for connection in connections.all():
+            for connection in unique_connections:
                 with django.test_db(connection):
                     django.clone_test_db(
                         connection=connection,
