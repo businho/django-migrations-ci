@@ -67,7 +67,9 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             # e.g. test_db_1, test_db_2, ...
             suffix = f"{index + 1}"
 
-        connection.creation.clone_test_db(suffix=suffix, verbosity=verbosity, keepdb=False)
+        connection.creation.clone_test_db(
+            suffix=suffix, verbosity=verbosity, keepdb=False
+        )
 
         if connection.vendor == "sqlite":
             settings_dict = connection.creation.get_test_db_clone_settings(suffix)
