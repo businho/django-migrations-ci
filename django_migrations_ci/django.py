@@ -23,7 +23,7 @@ def _get_db_backend(connection):
 def create_test_db(*, verbosity=1):
     for connection in get_unique_connections():
         connection.creation._create_test_db(
-            verbosity=True, autoclobber=True, keepdb=False
+            verbosity=verbosity, autoclobber=True, keepdb=False
         )
 
 
@@ -44,7 +44,7 @@ def setup_test_db(*, verbosity=1):
         aliases.append(connection.alias)
         database_names[connection.alias] = connection.settings_dict["NAME"]
 
-    setup_databases(verbosity=True, interactive=False, aliases=aliases)
+    setup_databases(verbosity=verbosity, interactive=False, aliases=aliases)
 
     # Django setup_databases change original settings and don't care about it
     # because it run the setup only one time and other parts of testing understand that.
@@ -67,7 +67,7 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             # e.g. test_db_1, test_db_2, ...
             suffix = f"{index + 1}"
 
-        connection.creation.clone_test_db(suffix=suffix, verbosity=True, keepdb=False)
+        connection.creation.clone_test_db(suffix=suffix, verbosity=verbosity, keepdb=False)
 
         if connection.vendor == "sqlite":
             settings_dict = connection.creation.get_test_db_clone_settings(suffix)
