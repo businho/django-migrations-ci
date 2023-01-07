@@ -1,5 +1,4 @@
-from pathlib import Path
-
+from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 
 try:
@@ -27,9 +26,22 @@ class Command(BaseCommand):
         )
         parser.add_argument("--directory", default="")
         parser.add_argument("--local", action="store_true", default=False)
+        parser.add_argument(
+            "--storage-class",
+            default="django.core.files.storage.FileSystemStorage",
+            type=get_storage_class,
+        )
 
     def handle(
-        self, *args, parallel, is_pytest, local, directory, verbosity, **options
+        self,
+        *args,
+        parallel,
+        is_pytest,
+        local,
+        directory,
+        storage_class,
+        verbosity,
+        **options,
     ):
         if parallel == "auto":
             parallel = get_max_test_processes()
@@ -40,20 +52,22 @@ class Command(BaseCommand):
         if local:
             suffix = f"-{django.hash_files()}"
 
+        storage = storage_class(directory)
+
         unique_connections = django.get_unique_connections()
         cached_files = {
-            connection.alias: Path(directory) / f"migrateci-{connection.alias}{suffix}"
+            connection.alias: f"migrateci-{connection.alias}{suffix}"
             for connection in unique_connections
         }
 
-        if all(f.exists() for f in cached_files.values()):
+        if all(storage.exists(f) for f in cached_files.values()):
             print("Database cache exists.")
             django.create_test_db(verbosity=verbosity)
 
             for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
-                    django.load(connection, cached_file)
+                    django.load(connection, cached_file, storage)
         else:
             print("Database cache does not exist.")
             django.setup_test_db(verbosity=verbosity)
@@ -61,7 +75,7 @@ class Command(BaseCommand):
             for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
-                    django.dump(connection, cached_file)
+                    django.dump(connection, cached_file, storage)
 
         if parallel:
             for connection in unique_connections:
