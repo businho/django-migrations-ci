@@ -4,6 +4,7 @@ import importlib
 from pathlib import Path
 import os
 import re
+import tempfile
 
 from django.apps import apps
 from django.conf import settings
@@ -140,8 +141,8 @@ def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
     return db_name
 
 
-def load(connection, input_file):
-    with open(input_file, "r") as f:
+def load(connection, input_file, storage):
+    with storage.open(input_file, "r") as f:
         sql = f.read()
     with connection.cursor() as cursor:
         if connection.vendor == "sqlite":
@@ -152,9 +153,19 @@ def load(connection, input_file):
             cursor.execute(sql)
 
 
-def dump(connection, output_file):
+def dump(connection, output_file, storage):
     backend = _get_db_backend(connection)
-    backend.dump(connection, output_file)
+
+    # Dump to a temp file because backends expect a filename instead of a file object.
+    _, tmp_filename = tempfile.mkstemp(prefix="migrateci", suffix=".sql")
+    backend.dump(connection, tmp_filename)
+
+    # Copy it to the storage.
+    with (
+        open(tmp_filename, "r") as tmp_fp,
+        storage.open(output_file, "w") as output_fp,
+    ):
+        output_fp.write(tmp_fp.read())
 
 
 def hash_files(*files):

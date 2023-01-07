@@ -1,4 +1,5 @@
 import shutil
+import tempfile
 from pathlib import Path
 
 from django.core.management import execute_from_command_line
@@ -72,3 +73,10 @@ def test_migrateci_local():
     _check_db(connections["default"])
     checksum = "b2bed1815363a843fdc8403d36497ddd"
     assert Path(f"migrateci-default-{checksum}").exists()
+
+
+def test_migrateci_directory():
+    tempdir = tempfile.mkdtemp(prefix="migrateci")
+    execute_from_command_line(["manage.py", "migrateci", "--directory", tempdir])
+    _check_db(connections["default"])
+    assert Path(f"{tempdir}/migrateci-default").exists()
