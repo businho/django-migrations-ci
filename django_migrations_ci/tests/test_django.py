@@ -1,5 +1,6 @@
 import pytest
 
+import django as dj
 from django_migrations_ci import django
 
 
@@ -32,3 +33,9 @@ def test_fix_sqlite_pytest_suffix(db_name, expected_db_name):
 )
 def test_transform_sqlite_name(db_name, expected_db_name):
     assert django._transform_sqlite_db_name(db_name) == expected_db_name
+
+
+def test_migration_tree():
+    dj.setup()
+    tree = django.migration_tree()
+    print(tree)

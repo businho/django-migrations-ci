@@ -4,10 +4,11 @@ import importlib
 from pathlib import Path
 import os
 import re
+import tmpfile
 
-from django.apps import apps
 from django.conf import settings
 from django.db import connections
+from django.db.migrations.loader import MigrationLoader
 from django.test.utils import setup_databases
 
 
@@ -140,9 +141,8 @@ def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
     return db_name
 
 
-def load(connection, input_file):
-    with open(input_file, "r") as f:
-        sql = f.read()
+def load(connection, input_fp):
+    sql = input_fp.read()
     with connection.cursor() as cursor:
         if connection.vendor == "sqlite":
             # sqlite3 can't use execute() to run many statements, it fails with
@@ -152,21 +152,39 @@ def load(connection, input_file):
             cursor.execute(sql)
 
 
-def dump(connection, output_file):
+def dump(connection, output_fp):
     backend = _get_db_backend(connection)
-    backend.dump(connection, output_file)
+
+    # Dump to a temp file because backends expect a filename instead of a file object.
+    _, tmp_filename = tempfile.mkstemp(prefix="migrateci", suffix=".sql")
+    backend.dump(connection, tmp_filename)
+
+    # Copy it to the right file.
+    with open(tmp_filename, "w") as tmp_fp:
+        output_fp.write(tmp_fp.read())
 
 
-def hash_files(*files):
-    files = list(files)
-    for app_config in apps.app_configs.values():
-        path = Path(app_config.path)
-        for migration_file in path.glob("migrations/*.py"):
-            files.append(migration_file)
+def hash_files():
+    """
+    Generate checksums based on migrations graph.
 
-    checksum = hashlib.md5()
-    for _file in sorted(files):
-        with open(_file, "rb") as f:
-            checksum.update(f.read())
+    First yield a checksum for all migrations, remove the last one and yield
+    another checksum for these migrations until we have only one migration.
+    """
+    loader = MigrationLoader(None, ignore_no_migrations=True)
+    nodes = loader.graph.leaf_nodes()
+    plan = loader.graph._generate_plan(nodes, at_end=True)
 
-    return checksum.hexdigest()
+    checksums = []
+    for app_label, migration_name in plan:
+        migration = loader.get_migration(app_label, migration_name)
+        module = importlib.import_module(migration.__module__)
+        filename = module.__file__
+
+        # Calculate checksum for each migration to limit memory usage.
+        with open(filename, "rb") as f:
+            checksum = hashlib.md5(f.read())
+        checksums.append(checksum)
+
+    for n, _ in enumerate(checksums):
+        yield hashlib.md5("".join(checksums[:-n]).encode())
