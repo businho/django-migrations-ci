@@ -1,14 +1,13 @@
 from contextlib import contextmanager
 import hashlib
 import importlib
-from pathlib import Path
 import os
 import re
 import tempfile
 
-from django.apps import apps
 from django.conf import settings
 from django.db import connections
+from django.db.migrations.loader import MigrationLoader
 from django.test.utils import setup_databases
 
 
@@ -168,16 +167,26 @@ def dump(connection, output_file, storage):
         output_fp.write(tmp_fp.read())
 
 
-def hash_files(*files):
-    files = list(files)
-    for app_config in apps.app_configs.values():
-        path = Path(app_config.path)
-        for migration_file in path.glob("migrations/*.py"):
-            files.append(migration_file)
+def hash_files():
+    """
+    Generate checksums based on migrations graph.
+    First yield a checksum for all migrations, remove the last one and yield
+    another checksum for these migrations until we have only one migration.
+    """
+    loader = MigrationLoader(None, ignore_no_migrations=True)
+    nodes = loader.graph.leaf_nodes()
+    plan = loader.graph._generate_plan(nodes, at_end=True)
 
-    checksum = hashlib.md5()
-    for _file in sorted(files):
-        with open(_file, "rb") as f:
-            checksum.update(f.read())
+    checksums = []
+    for app_label, migration_name in plan:
+        migration = loader.get_migration(app_label, migration_name)
+        module = importlib.import_module(migration.__module__)
+        filename = module.__file__
 
-    return checksum.hexdigest()
+        # Calculate checksum for each migration to limit memory usage.
+        with open(filename, "rb") as f:
+            checksum = hashlib.md5(f.read()).hexdigest()
+        checksums.append(checksum)
+
+    for n, _ in enumerate(checksums):
+        yield hashlib.md5("".join(checksums[:-n]).encode()).hexdigest()
