@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
         suffix = ""
         if local:
-            suffix = f"-{django.hash_files()}"
+            suffix = f"-{next(django.hash_files())}"
 
         storage = storage_class(directory)
 

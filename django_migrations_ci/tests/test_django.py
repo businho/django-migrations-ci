@@ -1,5 +1,6 @@
 import pytest
 
+import django as djangoframework
 from django_migrations_ci import django
 
 
@@ -32,3 +33,12 @@ def test_fix_sqlite_pytest_suffix(db_name, expected_db_name):
 )
 def test_transform_sqlite_name(db_name, expected_db_name):
     assert django._transform_sqlite_db_name(db_name) == expected_db_name
+
+
+def test_hash_files():
+    djangoframework.setup()
+    it = django.hash_files()
+    assert next(it) == "d41d8cd98f00b204e9800998ecf8427e"
+    assert next(it) == "e7cc3570aebddf921af899fc45ba3e9c"
+    with pytest.raises(StopIteration):
+        next(it)
