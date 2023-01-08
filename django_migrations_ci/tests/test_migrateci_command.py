@@ -1,5 +1,4 @@
 import shutil
-import tempfile
 from pathlib import Path
 
 from django.core.management import execute_from_command_line
@@ -8,6 +7,9 @@ from django.db.utils import OperationalError
 import pytest
 
 from django_migrations_ci import django
+
+CHECKSUM_0001 = "e7cc3570aebddf921af899fc45ba3e9c"
+CHECKSUM_0002 = "d41d8cd98f00b204e9800998ecf8427e"
 
 
 def _check_db(connection, suffix=""):
@@ -58,25 +60,34 @@ def test_migrateci_pytest():
 
 
 def test_migrateci_cached(mocker):
-    # Create empty cache file.
+    """Apply all cached migrations, no setup needed after that."""
     basepath = Path(__file__).parent
     connection = connections["default"]
-    shutil.copyfile(basepath / f"dump/{connection.vendor}.sql", "migrateci-default")
+    shutil.copyfile(
+        basepath / f"dump/0002/{connection.vendor}.sql",
+        f"migrateci-default-{CHECKSUM_0002}",
+    )
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     execute_from_command_line(["manage.py", "migrateci"])
     setup_test_db_mock.assert_not_called()
     _check_db(connections["default"])
 
 
-def test_migrateci_local():
-    execute_from_command_line(["manage.py", "migrateci", "--local"])
+def test_migrateci_cached_partial(mocker):
+    """Apply one cached migration and setup after that."""
+    basepath = Path(__file__).parent
+    connection = connections["default"]
+    shutil.copyfile(
+        basepath / f"dump/0001/{connection.vendor}.sql",
+        f"migrateci-default-{CHECKSUM_0001}",
+    )
+    setup_test_db_mock = mocker.spy(django, "setup_test_db")
+    execute_from_command_line(["manage.py", "migrateci"])
+    setup_test_db_mock.assert_called_once()
     _check_db(connections["default"])
-    checksum = "d41d8cd98f00b204e9800998ecf8427e"
-    assert Path(f"migrateci-default-{checksum}").exists()
 
 
-def test_migrateci_directory():
-    tempdir = tempfile.mkdtemp(prefix="migrateci")
-    execute_from_command_line(["manage.py", "migrateci", "--directory", tempdir])
+def test_migrateci_directory(tmpdir):
+    execute_from_command_line(["manage.py", "migrateci", "--directory", str(tmpdir)])
     _check_db(connections["default"])
-    assert Path(f"{tempdir}/migrateci-default").exists()
+    assert Path(f"{tmpdir}/migrateci-default-{CHECKSUM_0002}").exists()

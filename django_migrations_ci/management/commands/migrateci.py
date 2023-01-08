@@ -1,3 +1,5 @@
+import itertools
+
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 
@@ -25,21 +27,21 @@ class Command(BaseCommand):
             default=False,
         )
         parser.add_argument("--directory", default="")
-        parser.add_argument("--local", action="store_true", default=False)
         parser.add_argument(
             "--storage-class",
             default="django.core.files.storage.FileSystemStorage",
             type=get_storage_class,
         )
+        parser.add_argument("--depth", type=int, default=1)
 
     def handle(
         self,
         *args,
         parallel,
         is_pytest,
-        local,
         directory,
         storage_class,
+        depth,
         verbosity,
         **options,
     ):
@@ -48,34 +50,43 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        suffix = ""
-        if local:
-            suffix = f"-{next(django.hash_files())}"
-
         storage = storage_class(directory)
+        _, files = storage.listdir("")
+        files = set(files)
 
         unique_connections = django.get_unique_connections()
-        cached_files = {
-            connection.alias: f"migrateci-{connection.alias}{suffix}"
-            for connection in unique_connections
-        }
 
-        if all(storage.exists(f) for f in cached_files.values()):
-            print("Database cache exists.")
+        current_checksum = None
+        for cached_checksum in itertools.islice(django.hash_files(), depth):
+            # Current checksum is the first result returned from hash_files.
+            if current_checksum is None:
+                current_checksum = cached_checksum
+
+            cached_files = {
+                connection.alias: f"migrateci-{connection.alias}-{cached_checksum}"
+                for connection in unique_connections
+            }
+            if all(f in files for f in cached_files.values()):
+                print("Database cache exists.")
+                break
+        else:
+            cached_checksum = None
+            cached_files = None
+            print("Database cache does not exist.")
+
+        if cached_files:
             django.create_test_db(verbosity=verbosity)
-
             for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
                     django.load(connection, cached_file, storage)
-        else:
-            print("Database cache does not exist.")
-            django.setup_test_db(verbosity=verbosity)
 
+        if current_checksum != cached_checksum:
+            django.setup_test_db(verbosity=verbosity)
             for connection in unique_connections:
-                cached_file = cached_files[connection.alias]
+                current_file = f"migrateci-{connection.alias}-{current_checksum}"
                 with django.test_db(connection):
-                    django.dump(connection, cached_file, storage)
+                    django.dump(connection, current_file, storage)
 
         if parallel:
             for connection in unique_connections:
