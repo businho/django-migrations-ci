@@ -1,4 +1,3 @@
-import itertools
 import logging
 
 from django.core.files.storage import get_storage_class
@@ -35,7 +34,7 @@ class Command(BaseCommand):
             default="django.core.files.storage.FileSystemStorage",
             type=get_storage_class,
         )
-        parser.add_argument("--depth", type=int, default=1)
+        parser.add_argument("--depth", type=int, default=0)
 
     def handle(
         self,
@@ -65,7 +64,7 @@ class Command(BaseCommand):
         unique_connections = django.get_unique_connections()
 
         current_checksum = None
-        checksums = itertools.islice(django.hash_files(), depth)
+        checksums = django.hash_files(depth)
         for cached_checksum in checksums:
             # Current checksum is the first result returned from hash_files.
             if current_checksum is None:

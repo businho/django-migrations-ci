@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import hashlib
 import importlib
+import itertools
 import os
 import re
 import tempfile
@@ -44,7 +45,12 @@ def setup_test_db(*, verbosity=1):
         aliases.append(connection.alias)
         database_names[connection.alias] = connection.settings_dict["NAME"]
 
-    setup_databases(verbosity=verbosity, interactive=False, aliases=aliases)
+    setup_databases(
+        aliases=aliases,
+        verbosity=verbosity,
+        interactive=False,
+        keepdb=True,
+    )
 
     # Django setup_databases change original settings and don't care about it
     # because it run the setup only one time and other parts of testing understand that.
@@ -167,17 +173,18 @@ def dump(connection, output_file, storage):
         output_fp.write(tmp_fp.read())
 
 
-def hash_files():
+def hash_files(depth=0):
     """
     Generate checksums based on migrations graph.
-    First yield a checksum for all migrations, remove the last one and yield
-    another checksum for these migrations until we have only one migration.
+
+    Yield many checksums first based on all migrations, after that it tries to
+    remove `depth` migrations per app.
     """
     loader = MigrationLoader(None, ignore_no_migrations=True)
     nodes = loader.graph.leaf_nodes()
     plan = loader.graph._generate_plan(nodes, at_end=True)
 
-    checksums = []
+    checksums = {}
     for app_label, migration_name in plan:
         migration = loader.get_migration(app_label, migration_name)
         module = importlib.import_module(migration.__module__)
@@ -186,7 +193,20 @@ def hash_files():
         # Calculate checksum for each migration to limit memory usage.
         with open(filename, "rb") as f:
             checksum = hashlib.md5(f.read()).hexdigest()
-        checksums.append(checksum)
 
-    for n, _ in enumerate(checksums):
-        yield hashlib.md5("".join(checksums[:-n]).encode()).hexdigest()
+        app_checksums = checksums.setdefault(app_label, [])
+        app_checksums.append(checksum)
+
+    for n in range(0, depth + 1):
+        combinations = itertools.combinations_with_replacement(checksums, n)
+        for apps_to_remove_migration in combinations:
+            copy_checksums = checksums.copy()
+            for app_label in apps_to_remove_migration:
+                # Remove last migration from selected app.
+                remaining_checksums = copy_checksums[app_label][:-1]
+                copy_checksums[app_label] = remaining_checksums
+
+            checksum = hashlib.md5()
+            for app_checksums in copy_checksums.values():
+                checksum.update("".join(app_checksums).encode())
+            yield checksum.hexdigest()

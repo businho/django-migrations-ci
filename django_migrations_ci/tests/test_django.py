@@ -37,8 +37,8 @@ def test_transform_sqlite_name(db_name, expected_db_name):
 
 def test_hash_files():
     djangoframework.setup()
-    it = django.hash_files()
-    assert next(it) == "d41d8cd98f00b204e9800998ecf8427e"
+    it = django.hash_files(1)
+    assert next(it) == "8c1c0190533e18f1e694d8b0be5c46ad"
     assert next(it) == "e7cc3570aebddf921af899fc45ba3e9c"
     with pytest.raises(StopIteration):
         next(it)
