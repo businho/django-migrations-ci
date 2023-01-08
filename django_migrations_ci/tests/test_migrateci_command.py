@@ -1,5 +1,4 @@
 import shutil
-import tempfile
 from pathlib import Path
 
 from django.core.management import execute_from_command_line
@@ -61,9 +60,7 @@ def test_migrateci_pytest():
 
 
 def test_migrateci_cached(mocker):
-    """
-    Apply all cached migrations, no setup needed after that.
-    """
+    """Apply all cached migrations, no setup needed after that."""
     basepath = Path(__file__).parent
     connection = connections["default"]
     shutil.copyfile(
@@ -77,9 +74,7 @@ def test_migrateci_cached(mocker):
 
 
 def test_migrateci_cached_partial(mocker):
-    """
-    Apply one cached migration and setup after that.
-    """
+    """Apply one cached migration and setup after that."""
     basepath = Path(__file__).parent
     connection = connections["default"]
     shutil.copyfile(
@@ -92,8 +87,7 @@ def test_migrateci_cached_partial(mocker):
     _check_db(connections["default"])
 
 
-def test_migrateci_directory():
-    tempdir = tempfile.mkdtemp(prefix="migrateci")
-    execute_from_command_line(["manage.py", "migrateci", "--directory", tempdir])
+def test_migrateci_directory(tmpdir):
+    execute_from_command_line(["manage.py", "migrateci", "--directory", str(tmpdir)])
     _check_db(connections["default"])
-    assert Path(f"{tempdir}/migrateci-default-{CHECKSUM_0002}").exists()
+    assert Path(f"{tmpdir}/migrateci-default-{CHECKSUM_0002}").exists()
