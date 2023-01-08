@@ -9,6 +9,8 @@ import pytest
 
 from django_migrations_ci import django
 
+TEST_CHECKSUM = "d41d8cd98f00b204e9800998ecf8427e"
+
 
 def _check_db(connection, suffix=""):
     with django.test_db(connection, suffix=suffix):
@@ -61,22 +63,18 @@ def test_migrateci_cached(mocker):
     # Create empty cache file.
     basepath = Path(__file__).parent
     connection = connections["default"]
-    shutil.copyfile(basepath / f"dump/{connection.vendor}.sql", "migrateci-default")
+    shutil.copyfile(
+        basepath / f"dump/{connection.vendor}.sql",
+        f"migrateci-default-{TEST_CHECKSUM}",
+    )
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     execute_from_command_line(["manage.py", "migrateci"])
     setup_test_db_mock.assert_not_called()
     _check_db(connections["default"])
 
 
-def test_migrateci_local():
-    execute_from_command_line(["manage.py", "migrateci", "--local"])
-    _check_db(connections["default"])
-    checksum = "d41d8cd98f00b204e9800998ecf8427e"
-    assert Path(f"migrateci-default-{checksum}").exists()
-
-
 def test_migrateci_directory():
     tempdir = tempfile.mkdtemp(prefix="migrateci")
     execute_from_command_line(["manage.py", "migrateci", "--directory", tempdir])
     _check_db(connections["default"])
-    assert Path(f"{tempdir}/migrateci-default").exists()
+    assert Path(f"{tempdir}/migrateci-default-{TEST_CHECKSUM}").exists()
