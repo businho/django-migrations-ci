@@ -44,7 +44,12 @@ def setup_test_db(*, verbosity=1):
         aliases.append(connection.alias)
         database_names[connection.alias] = connection.settings_dict["NAME"]
 
-    setup_databases(verbosity=verbosity, interactive=False, aliases=aliases)
+    setup_databases(
+        aliases=aliases,
+        verbosity=verbosity,
+        interactive=False,
+        keepdb=True,
+    )
 
     # Django setup_databases change original settings and don't care about it
     # because it run the setup only one time and other parts of testing understand that.
