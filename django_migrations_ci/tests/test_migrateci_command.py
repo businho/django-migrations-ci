@@ -9,7 +9,8 @@ import pytest
 
 from django_migrations_ci import django
 
-TEST_CHECKSUM = "d41d8cd98f00b204e9800998ecf8427e"
+CHECKSUM_0001 = "e7cc3570aebddf921af899fc45ba3e9c"
+CHECKSUM_0002 = "d41d8cd98f00b204e9800998ecf8427e"
 
 
 def _check_db(connection, suffix=""):
@@ -60,12 +61,14 @@ def test_migrateci_pytest():
 
 
 def test_migrateci_cached(mocker):
-    # Create empty cache file.
+    """
+    Apply all cached migrations, no setup needed after that.
+    """
     basepath = Path(__file__).parent
     connection = connections["default"]
     shutil.copyfile(
-        basepath / f"dump/{connection.vendor}.sql",
-        f"migrateci-default-{TEST_CHECKSUM}",
+        basepath / f"dump/0002/{connection.vendor}.sql",
+        f"migrateci-default-{CHECKSUM_0002}",
     )
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     execute_from_command_line(["manage.py", "migrateci"])
@@ -73,8 +76,24 @@ def test_migrateci_cached(mocker):
     _check_db(connections["default"])
 
 
+def test_migrateci_cached_partial(mocker):
+    """
+    Apply one cached migration and setup after that.
+    """
+    basepath = Path(__file__).parent
+    connection = connections["default"]
+    shutil.copyfile(
+        basepath / f"dump/0001/{connection.vendor}.sql",
+        f"migrateci-default-{CHECKSUM_0001}",
+    )
+    setup_test_db_mock = mocker.spy(django, "setup_test_db")
+    execute_from_command_line(["manage.py", "migrateci"])
+    setup_test_db_mock.assert_called_once()
+    _check_db(connections["default"])
+
+
 def test_migrateci_directory():
     tempdir = tempfile.mkdtemp(prefix="migrateci")
     execute_from_command_line(["manage.py", "migrateci", "--directory", tempdir])
     _check_db(connections["default"])
-    assert Path(f"{tempdir}/migrateci-default-{TEST_CHECKSUM}").exists()
+    assert Path(f"{tempdir}/migrateci-default-{CHECKSUM_0002}").exists()
