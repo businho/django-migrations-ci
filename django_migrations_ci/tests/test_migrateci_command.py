@@ -9,7 +9,7 @@ import pytest
 from django_migrations_ci import django
 
 CHECKSUM_0001 = "e7cc3570aebddf921af899fc45ba3e9c"
-CHECKSUM_0002 = "d41d8cd98f00b204e9800998ecf8427e"
+CHECKSUM_0002 = "8c1c0190533e18f1e694d8b0be5c46ad"
 
 
 def _check_db(connection, suffix=""):

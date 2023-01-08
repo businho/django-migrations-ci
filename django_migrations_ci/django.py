@@ -167,17 +167,20 @@ def dump(connection, output_file, storage):
         output_fp.write(tmp_fp.read())
 
 
-def hash_files():
+def hash_files(depth=0):
     """
     Generate checksums based on migrations graph.
-    First yield a checksum for all migrations, remove the last one and yield
-    another checksum for these migrations until we have only one migration.
+
+    Yield many checksums first based on all migrations, after that it tries to
+    remove `depth` migrations per app.
+
+    For now, works only for depth 0 or 1.
     """
     loader = MigrationLoader(None, ignore_no_migrations=True)
     nodes = loader.graph.leaf_nodes()
     plan = loader.graph._generate_plan(nodes, at_end=True)
 
-    checksums = []
+    checksums = {}
     for app_label, migration_name in plan:
         migration = loader.get_migration(app_label, migration_name)
         module = importlib.import_module(migration.__module__)
@@ -186,7 +189,21 @@ def hash_files():
         # Calculate checksum for each migration to limit memory usage.
         with open(filename, "rb") as f:
             checksum = hashlib.md5(f.read()).hexdigest()
-        checksums.append(checksum)
 
-    for n, _ in enumerate(checksums):
-        yield hashlib.md5("".join(checksums[:-n]).encode()).hexdigest()
+        app_checksums = checksums.setdefault(app_label, [])
+        app_checksums.append(checksum)
+
+    # Checksum for all migrations.
+    checksum = hashlib.md5()
+    for app_checksums in checksums.values():
+        checksum.update("".join(app_checksums).encode())
+    yield checksum.hexdigest()
+
+    if depth > 0:
+        for app_label_to_remove_last_migration in checksums.keys():
+            checksum = hashlib.md5()
+            for app_label, app_checksums in checksums.items():
+                if app_label_to_remove_last_migration == app_label:
+                    app_checksums = app_checksums[:-1]
+                checksum.update("".join(app_checksums).encode())
+            yield checksum.hexdigest()
