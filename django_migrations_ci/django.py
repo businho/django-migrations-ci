@@ -39,12 +39,11 @@ def get_unique_connections():
 def setup_test_db(*, verbosity=1):
     # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
     unique_connections = get_unique_connections()
-    aliases = []
-    database_names = {}
-    for connection in unique_connections:
-        aliases.append(connection.alias)
-        database_names[connection.alias] = connection.settings_dict["NAME"]
-
+    database_names = {
+        connection.alias: connection.settings_dict["NAME"]
+        for connection in unique_connections
+    }
+    aliases = list(database_names.keys())
     setup_databases(
         aliases=aliases,
         verbosity=verbosity,
