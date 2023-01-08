@@ -1,7 +1,6 @@
 # django-migrations-ci
 
-Reuse database state on CI. Run migrations on CI tests only on changes,
-integrating CI caching to database state.
+Reuse database state on CI. Run migrations on CI tests only for changes.
 
 Migrations are slow, but you have to run it on CI for testing reasons, so avoid
 to run them when the database state was already tested.
@@ -23,25 +22,46 @@ INSTALLED_APPS = [
 ]
 ```
 
+## Configure storage
+
+By default, the lib uses the default `FileSystemStorage` to read and write cache
+files, but it uses [Django File storage API](https://docs.djangoproject.com/en/4.1/ref/files/storage/),
+so you can integrate with any [django-storages](https://django-storages.readthedocs.io/).
+
+Saving cache files to an external storage allow the lib to reuse partial migrations.
+When you write a new migration, it will try to get a cache without this
+last migration and load from it, running only the new migrations.
+
+```python
+from storages.backends.s3boto3 import S3Boto3Storage
+
+class MigrateCIStorage(S3Boto3Storage):
+    bucket_name = "mybucket-migrateci-cache"
+    region_name = "us-east-1"
+    object_parameters = {
+        "StorageClass": "REDUCED_REDUNDANCY",
+    }
+```
+
+This configuration is specific to your storage, maybe you have to add credentials
+there too.
+
+Pass the module path to command `migrateci` with `--storage-class foo.MigrateCIStorage`.
+
 ## How to use
 
-The command `migrateci` execute all migrations and generate dump files `migrateci-*` to be cached on CI.
+The command `migrateci` execute all migrations and save dump files `migrateci-*`.
 
-If these files already exist on disk, they are used to prepare the database without running all migrations again.
-
-Configure your CI to cache these `migrateci-*` files, based on migration files.
+If these files already exist on disk, they are used to prepare the database
+without running all migrations again.
 
 ## Workflow
 
 This is how the "run test" CI job should work.
 
 ```shell
-# Load migrateci-* from CI cache.
-
 ./manage.py migrateci
 ./manage.py test --keepdb
-
-# Save migrateci-* to CI cache.
 ```
 
 It works with `pytest-django` too:
@@ -71,7 +91,9 @@ pytest --reuse-db --parallel $(nproc)
 Check [database names for parallel tests](#database-names-for-parallel-tests) for
 details. 
 
-## Cache example on GitHub
+## Cache example on GitHub (legacy)
+
+It still works, but prefer to use external cache to support partial migrations.
 
 ```
     steps:
@@ -86,7 +108,9 @@ details.
       run: ./manage.py test --keepdb --parallel $(nproc)
 ```
 
-## Cache example on GitLab
+## Cache example on GitLab (legacy)
+
+It still works, but prefer to use external cache to support partial migrations.
 
 ```
 test_job:
@@ -109,15 +133,12 @@ test_job:
 ## Local migration caching
 
 It is not possible to use "CI caching" for local runs, but we can use a folder
-to cache on disk. Use `--local` option to add a suffix checksum to save a state
-to disk and reuse it when it is available.
+to cache on disk.
 
 ```shell
-./manage.py migrateci --parallel $(nproc) --local --directory ~/.migrateci
+./manage.py migrateci --parallel $(nproc) --directory ~/.migrateci
 ./manage.py test --keepdb --parallel $(nproc)
 ```
-
-It works with `pytest-django` too.
 
 ## Why migrations are slow?
 
