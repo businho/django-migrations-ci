@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import hashlib
 import importlib
+import itertools
 import os
 import re
 import tempfile
@@ -178,8 +179,6 @@ def hash_files(depth=0):
 
     Yield many checksums first based on all migrations, after that it tries to
     remove `depth` migrations per app.
-
-    For now, works only for depth 0 or 1.
     """
     loader = MigrationLoader(None, ignore_no_migrations=True)
     nodes = loader.graph.leaf_nodes()
@@ -198,17 +197,16 @@ def hash_files(depth=0):
         app_checksums = checksums.setdefault(app_label, [])
         app_checksums.append(checksum)
 
-    # Checksum for all migrations.
-    checksum = hashlib.md5()
-    for app_checksums in checksums.values():
-        checksum.update("".join(app_checksums).encode())
-    yield checksum.hexdigest()
+    for n in range(0, depth + 1):
+        combinations = itertools.combinations_with_replacement(checksums, n)
+        for apps_to_remove_migration in combinations:
+            copy_checksums = checksums.copy()
+            for app_label in apps_to_remove_migration:
+                # Remove last migration from selected app.
+                remaining_checksums = copy_checksums[app_label][:-1]
+                copy_checksums[app_label] = remaining_checksums
 
-    if depth > 0:
-        for app_label_to_remove_last_migration in checksums.keys():
             checksum = hashlib.md5()
-            for app_label, app_checksums in checksums.items():
-                if app_label_to_remove_last_migration == app_label:
-                    app_checksums = app_checksums[:-1]
+            for app_checksums in copy_checksums.values():
                 checksum.update("".join(app_checksums).encode())
             yield checksum.hexdigest()
