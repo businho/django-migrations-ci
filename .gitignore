@@ -7,3 +7,4 @@ dist/
 .coverage
 .python-version
 *.sqlite3
+coverage.xml

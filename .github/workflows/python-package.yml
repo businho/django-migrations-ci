@@ -62,3 +62,7 @@ jobs:
         python setup.py test
       env:
         DATABASES_MODULE: ${{ matrix.vendor }}
+    - uses: codecov/codecov-action@v3
+      with:
+        fail_ci_if_error: true
+        verbose: true
