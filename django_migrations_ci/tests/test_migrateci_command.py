@@ -91,3 +91,8 @@ def test_migrateci_directory(tmpdir):
     execute_from_command_line(["manage.py", "migrateci", "--directory", str(tmpdir)])
     _check_db(connections["default"])
     assert Path(f"{tmpdir}/migrateci-default-{CHECKSUM_0002}").exists()
+
+
+def test_migrateci_verbose():
+    execute_from_command_line(["manage.py", "migrateci", "-v3"])
+    _check_db(connections["default"])
