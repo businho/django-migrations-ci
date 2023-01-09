@@ -25,3 +25,6 @@ DATABASES = {
         },
     }
 }
+
+AWS_STORAGE_BUCKET_NAME = "example-migrateci-cache"
+AWS_S3_REGION_NAME = "us-east-2"
