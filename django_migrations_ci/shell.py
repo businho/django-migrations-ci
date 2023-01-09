@@ -1,11 +1,11 @@
+import logging
 from subprocess import PIPE, Popen
 
+logger = logging.getLogger(__name__)
 
-def exec(command, env):
-    if "test_test" in command:
-        raise Exception(command)
 
-    print("EXEC", command)
+def exec(command, env=None):
+    logger.info(f"Running shell command {command}")
     p = Popen(
         command,
         shell=True,
@@ -15,7 +15,6 @@ def exec(command, env):
         env=env,
     )
     stdout, stderr = p.communicate()
-
     if stderr:
-        print("EXEC ERROR", command, stdout, stderr)
+        logger.error(f"Error running shell command {command}\n{stdout=}\n{stderr=}")
     return stdout, stderr

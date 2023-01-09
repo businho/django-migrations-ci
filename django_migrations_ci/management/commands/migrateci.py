@@ -106,7 +106,7 @@ class Command(BaseCommand):
             for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
-                    django.load(connection, cached_file, storage)
+                    django.load(connection, cached_file, storage, verbosity=verbosity)
 
         if current_checksum != cached_checksum:
             if verbosity >= 2:
@@ -118,7 +118,7 @@ class Command(BaseCommand):
             for connection in unique_connections:
                 current_file = f"migrateci-{connection.alias}-{current_checksum}"
                 with django.test_db(connection):
-                    django.dump(connection, current_file, storage)
+                    django.dump(connection, current_file, storage, verbosity=verbosity)
 
         if parallel:
             if verbosity >= 2:

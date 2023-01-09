@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import hashlib
 import importlib
 import itertools
+import logging
 import os
 import re
 import tempfile
@@ -10,6 +11,8 @@ from django.conf import settings
 from django.db import connections
 from django.db.migrations.loader import MigrationLoader
 from django.test.utils import setup_databases
+
+logger = logging.getLogger(__name__)
 
 
 def _get_db_backend(connection):
@@ -145,7 +148,10 @@ def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
     return db_name
 
 
-def load(connection, input_file, storage):
+def load(connection, input_file, storage, *, verbosity=1):
+    if verbosity:
+        db_name = connection.settings_dict["NAME"]
+        logger.info(f"Load {input_file} SQL to {db_name}")
     with storage.open(input_file, "r") as f:
         sql = f.read()
     with connection.cursor() as cursor:
@@ -157,7 +163,11 @@ def load(connection, input_file, storage):
             cursor.execute(sql)
 
 
-def dump(connection, output_file, storage):
+def dump(connection, output_file, storage, *, verbosity=1):
+    if verbosity:
+        db_name = connection.settings_dict["NAME"]
+        logger.info(f"Load {output_file} SQL to {db_name}")
+
     backend = _get_db_backend(connection)
 
     # Dump to a temp file because backends expect a filename instead of a file object.
