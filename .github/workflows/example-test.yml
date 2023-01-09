@@ -36,13 +36,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: actions/cache@v3
-      name: Cache migrations
-      with:
-        path: |
-          example/migrateci-*
-        key: ${{ secrets.EXAMPLE_CACHE_PREFIX }}-${{ hashFiles('**/migrations/*.py') }}
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -51,7 +44,7 @@ jobs:
     - name: Migrate database
       run: |
         cd example
-        ./manage.py migrateci --parallel $(nproc)
+        ./manage.py migrateci --parallel $(nproc) --storage-class example.migrateci_storage.MigrateCIStorage
     - name: Test with Django
       run: |
         cd example
