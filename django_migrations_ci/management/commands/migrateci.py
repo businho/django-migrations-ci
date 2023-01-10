@@ -1,47 +1,54 @@
 import logging
 
 from django.core.files.storage import get_storage_class
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 try:
     from django.test.runner import get_max_test_processes
 except ImportError:
     # Django<4
     def get_max_test_processes():
-        raise Exception(
+        raise CommandError(
             "Django<4 do not implement get_max_test_processes."
             " Use --parallel $(nproc) to not depend on this."
         )
 
 
-from django_migrations_ci import django
+from django_migrations_ci import django, settings
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("-n", "--parallel", default=None)
+        parser.add_argument("-n", "--parallel", default=settings.parallel)
         parser.add_argument(
             "--pytest",
             dest="is_pytest",
             action="store_true",
-            default=False,
+            default=settings.is_pytest,
         )
-        parser.add_argument("--directory", default="")
         parser.add_argument(
-            "--storage-class",
-            default="django.core.files.storage.FileSystemStorage",
+            "--directory",
+            dest="location",
+            default=settings.location,
+            help="Deprecated, use --location instead.",
+        )
+        parser.add_argument("--location", default=settings.location)
+        parser.add_argument(
+            "--storage",
+            dest="storage_class",
+            default=settings.storage_class,
             type=get_storage_class,
         )
-        parser.add_argument("--depth", type=int, default=0)
+        parser.add_argument("--depth", type=int, default=settings.depth)
 
     def handle(
         self,
         *args,
         parallel,
         is_pytest,
-        directory,
+        location,
         storage_class,
         depth,
         verbosity,
@@ -53,8 +60,8 @@ class Command(BaseCommand):
             parallel = int(parallel)
 
         if verbosity >= 2:
-            logger.info(f"Using storage {storage_class=} on {directory=}.")
-        storage = storage_class(location=directory)
+            logger.info(f"Using storage {storage_class=} on {location=}.")
+        storage = storage_class(location=location)
 
         _, files = storage.listdir("")
         files = set(files)
