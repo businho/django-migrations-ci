@@ -26,5 +26,21 @@ DATABASES = {
     }
 }
 
+LOGGING = {
+    "version": 1,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+        },
+    },
+    "loggers": {
+        "django_migrations_ci": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+    },
+}
+
 AWS_STORAGE_BUCKET_NAME = "example-migrateci-cache"
 AWS_S3_REGION_NAME = "us-east-2"
