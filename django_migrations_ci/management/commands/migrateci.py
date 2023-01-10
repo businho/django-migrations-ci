@@ -135,7 +135,9 @@ class Command(BaseCommand):
                 current_file = f"migrateci-{connection.alias}-{current_checksum}"
                 with django.test_db(connection):
                     try:
-                        django.dump(connection, current_file, storage, verbosity=verbosity)
+                        django.dump(
+                            connection, current_file, storage, verbosity=verbosity
+                        )
                     except DumpError as e:
                         raise CommandError(str(e))
 
