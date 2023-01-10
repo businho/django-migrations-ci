@@ -1,10 +1,17 @@
+from io import BytesIO
+
 from django_migrations_ci import shell
+from django_migrations_ci.exceptions import DumpError
 
 
-def dump(connection, output_file):
+def dump(connection):
     ctx, env = _ctx(connection.settings_dict)
-    mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database} --result-file {output_file}"  # noqa: E501
-    shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
+    mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database}"
+    out, err = shell.exec(mysqldump.format(**ctx), env)
+    if err:
+        raise DumpError(err)
+
+    return BytesIO(out)
 
 
 def _ctx(db_conf):

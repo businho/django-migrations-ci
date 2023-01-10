@@ -1,10 +1,17 @@
+from io import BytesIO
+
 from django_migrations_ci import shell
+from django_migrations_ci.exceptions import DumpError
 
 
-def dump(connection, output_file):
+def dump(connection):
     ctx, env = _ctx(connection.settings_dict)
-    pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database} -f {output_file}"  # noqa: E501
-    shell.exec(pg_dump.format(output_file=output_file, **ctx), env)
+    pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database}"
+    out, err = shell.exec(pg_dump.format(**ctx), env)
+    if err:
+        raise DumpError(err)
+
+    return BytesIO(out)
 
 
 def _ctx(db_conf):

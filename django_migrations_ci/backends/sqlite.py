@@ -1,5 +1,7 @@
-def dump(connection, output_file):
+from io import StringIO
+
+
+def dump(connection):
     connection.ensure_connection()
     sql = "".join(f"{sql}\n" for sql in connection.connection.iterdump())
-    with open(output_file, "w") as f:
-        f.write(sql)
+    return StringIO(sql)

@@ -169,17 +169,8 @@ def dump(connection, output_file, storage, *, verbosity=1):
         logger.info(f"Load {output_file} SQL to {db_name}")
 
     backend = _get_db_backend(connection)
-
-    # Dump to a temp file because backends expect a filename instead of a file object.
-    _, tmp_filename = tempfile.mkstemp(prefix="migrateci", suffix=".sql")
-    backend.dump(connection, tmp_filename)
-
-    # Copy it to the storage.
-    with (
-        open(tmp_filename, "r") as tmp_fp,
-        storage.open(output_file, "w") as output_fp,
-    ):
-        output_fp.write(tmp_fp.read())
+    sql_dump = backend.dump(connection)
+    storage.save(output_file, sql_dump)
 
 
 def hash_files(depth=0):
