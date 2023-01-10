@@ -8,3 +8,4 @@ storage_class = getattr(
 location = getattr(settings, "MIGRATECI_LOCATION", "")
 depth = getattr(settings, "MIGRATECI_DEPTH", 0)
 is_pytest = getattr(settings, "MIGRATECI_PYTEST", False)
+parallel = getattr(settings, "MIGRATECI_PARALLEL", None)

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("-n", "--parallel", default=None)
+        parser.add_argument("-n", "--parallel", default=settings.parallel)
         parser.add_argument(
             "--pytest",
             dest="is_pytest",
