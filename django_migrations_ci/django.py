@@ -5,7 +5,6 @@ import itertools
 import logging
 import os
 import re
-import tempfile
 
 from django.conf import settings
 from django.db import connections
