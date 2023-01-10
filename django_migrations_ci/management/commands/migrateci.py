@@ -44,7 +44,7 @@ class Command(BaseCommand):
         parser.add_argument("--depth", type=int, default=settings.depth)
 
     def _setup_logging(self):
-        lib_logger = logging.getLogger('django_migrations_ci')
+        lib_logger = logging.getLogger("django_migrations_ci")
         lib_logger.setLevel(logging.INFO)
         lib_logger.addHandler(logging.StreamHandler())
 
