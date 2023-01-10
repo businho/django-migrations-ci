@@ -3,6 +3,8 @@ import logging
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand, CommandError
 
+from django_migrations_ci.exceptions import DumpError
+
 try:
     from django.test.runner import get_max_test_processes
 except ImportError:
@@ -132,7 +134,10 @@ class Command(BaseCommand):
             for connection in unique_connections:
                 current_file = f"migrateci-{connection.alias}-{current_checksum}"
                 with django.test_db(connection):
-                    django.dump(connection, current_file, storage, verbosity=verbosity)
+                    try:
+                        django.dump(connection, current_file, storage, verbosity=verbosity)
+                    except DumpError as e:
+                        raise CommandError(str(e))
 
         if parallel:
             if verbosity >= 2:

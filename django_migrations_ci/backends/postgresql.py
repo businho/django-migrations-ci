@@ -9,7 +9,7 @@ def dump(connection):
     pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -d {database}"
     out, err = shell.exec(pg_dump.format(**ctx), env)
     if err:
-        raise DumpError(err)
+        raise DumpError.from_stderr(err)
 
     return BytesIO(out)
 

@@ -9,7 +9,7 @@ def dump(connection):
     mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database}"
     out, err = shell.exec(mysqldump.format(**ctx), env)
     if err:
-        raise DumpError(err)
+        raise DumpError.from_stderr(err)
 
     return BytesIO(out)
 
