@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import tempfile
 
 import pytest
 
@@ -50,10 +49,3 @@ def drop_postgresql_test_databases():
 @pytest.fixture(autouse=True)
 def drop_test_databases(remove_sqlite3_files, drop_postgresql_test_databases):
     pass
-
-
-@pytest.fixture
-def tempdir():
-    directory = tempfile.TemporaryDirectory()
-    with directory:
-        yield directory.name
