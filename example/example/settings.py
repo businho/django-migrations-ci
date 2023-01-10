@@ -26,22 +26,6 @@ DATABASES = {
     }
 }
 
-LOGGING = {
-    "version": 1,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "INFO",
-        },
-    },
-    "loggers": {
-        "django_migrations_ci": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-    },
-}
-
 # AWS credentials (AWS_S3_ACCESS_KEY_ID / AWS_S3_SECRET_ACCESS_KEY) are defined
 # in .github/workflows/example-test.yml as environment variables.
 AWS_STORAGE_BUCKET_NAME = "example-migrateci-cache"

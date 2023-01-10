@@ -43,6 +43,11 @@ class Command(BaseCommand):
         )
         parser.add_argument("--depth", type=int, default=settings.depth)
 
+    def _setup_logging(self):
+        lib_logger = logging.getLogger('django_migrations_ci')
+        lib_logger.setLevel(logging.INFO)
+        lib_logger.addHandler(logging.StreamHandler())
+
     def handle(
         self,
         *args,
@@ -54,6 +59,8 @@ class Command(BaseCommand):
         verbosity,
         **options,
     ):
+        self._setup_logging()
+
         if parallel == "auto":
             parallel = get_max_test_processes()
         elif parallel is not None:
