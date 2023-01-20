@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand, CommandError
@@ -14,7 +15,8 @@ except ImportError:
         )
 
 
-from django_migrations_ci import django, settings
+from django_migrations_ci import django
+from django_migrations_ci.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +33,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--directory",
             dest="location",
+            type=Path,
             default=settings.location,
             help="Deprecated, use --location instead.",
         )
-        parser.add_argument("--location", default=settings.location)
+        parser.add_argument("--location", type=Path, default=settings.location)
         parser.add_argument(
             "--storage",
             dest="storage_class",
@@ -65,6 +68,8 @@ class Command(BaseCommand):
             parallel = get_max_test_processes()
         elif parallel is not None:
             parallel = int(parallel)
+
+        location = location.expanduser()
 
         if verbosity >= 2:
             logger.info(f"Using storage {storage_class=} on {location=}.")

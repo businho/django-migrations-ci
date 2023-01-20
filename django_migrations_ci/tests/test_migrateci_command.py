@@ -20,13 +20,29 @@ def _check_db(connection, suffix=""):
     assert list(result) == [(1, "BUS3R")]
 
 
+def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=None):
+    args = ["manage.py", "migrateci"]
+    if parallel is not None:
+        args.append(f"--parallel={parallel}")
+    if pytest:
+        args.append("--pytest")
+    if location:
+        args.append(f"--location={location}")
+    if verbosity:
+        args.append(f"-v{verbosity}")
+    if depth:
+        args.append(f"--depth={depth}")
+
+    execute_from_command_line(args)
+
+
 def test_migrateci():
     execute_from_command_line(["manage.py", "migrateci"])
     _check_db(connections["default"])
 
 
-def test_migrateci_parallel():
-    execute_from_command_line(["manage.py", "migrateci", "--parallel", "1"])
+def test_migrateci_parallel(tmpdir):
+    cli(parallel=1, location=tmpdir)
     connection = connections["default"]
     _check_db(connection)
     _check_db(connection, suffix="1")
@@ -38,16 +54,8 @@ def test_migrateci_parallel():
         pytest.fail("Database 2 should not exist here.")
 
 
-def test_migrateci_pytest():
-    execute_from_command_line(
-        [
-            "manage.py",
-            "migrateci",
-            "--parallel",
-            "1",
-            "--pytest",
-        ]
-    )
+def test_migrateci_pytest(tmpdir):
+    cli(location=tmpdir, parallel=1, pytest=True)
     connection = connections["default"]
     _check_db(connection)
     _check_db(connection, suffix="gw0")
@@ -59,40 +67,40 @@ def test_migrateci_pytest():
         pytest.fail("Database gw1 should not exist here.")
 
 
-def test_migrateci_cached(mocker):
+def test_migrateci_cached(mocker, tmpdir):
     """Apply all cached migrations, no setup needed after that."""
-    basepath = Path(__file__).parent
     connection = connections["default"]
-    shutil.copyfile(
-        basepath / f"dump/0002/{connection.vendor}.sql",
-        f"migrateci-default-{CHECKSUM_0002}",
-    )
+    migration_file = Path(__file__).parent / f"dump/0002/{connection.vendor}.sql"
+    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0002}"
+    shutil.copyfile(migration_file, migration_cached)
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
-    execute_from_command_line(["manage.py", "migrateci"])
+    cli(location=tmpdir)
     setup_test_db_mock.assert_not_called()
     _check_db(connections["default"])
 
 
-def test_migrateci_cached_partial(mocker):
+def test_migrateci_cached_partial(mocker, tmpdir):
     """Apply one cached migration and setup after that."""
-    basepath = Path(__file__).parent
     connection = connections["default"]
-    shutil.copyfile(
-        basepath / f"dump/0001/{connection.vendor}.sql",
-        f"migrateci-default-{CHECKSUM_0001}",
-    )
-    setup_test_db_mock = mocker.spy(django, "setup_test_db")
-    execute_from_command_line(["manage.py", "migrateci"])
-    setup_test_db_mock.assert_called_once()
+    migration_file = Path(__file__).parent / f"dump/0001/{connection.vendor}.sql"
+    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0001}"
+    shutil.copyfile(migration_file, migration_cached)
+    load_spy = mocker.spy(django, "load")
+    setup_test_db_spy = mocker.spy(django, "setup_test_db")
+    cli(location=tmpdir, depth=1)
+    setup_test_db_spy.assert_called_once()
+    load_spy.assert_called_once()
+    assert load_spy.call_args[0][1] == migration_cached.basename
     _check_db(connections["default"])
 
 
-def test_migrateci_directory(tmpdir):
-    execute_from_command_line(["manage.py", "migrateci", "--directory", str(tmpdir)])
+def test_migrateci_location(tmpdir):
+    cli(location=tmpdir)
     _check_db(connections["default"])
-    assert Path(f"{tmpdir}/migrateci-default-{CHECKSUM_0002}").exists()
+    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0002}"
+    assert migration_cached.exists()
 
 
-def test_migrateci_verbose():
-    execute_from_command_line(["manage.py", "migrateci", "-v3"])
+def test_migrateci_verbose(tmpdir):
+    cli(location=tmpdir, verbosity=3)
     _check_db(connections["default"])
