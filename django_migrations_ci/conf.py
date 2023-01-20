@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from django.conf import settings as django_settings
 from django.utils.functional import SimpleLazyObject
 
@@ -15,12 +13,10 @@ class Settings:
         self.is_pytest = _setting("MIGRATECI_PYTEST", False)
         self.parallel = _setting("MIGRATECI_PARALLEL", None)
 
-        self.storage_class = _setting("MIGRATECI_STORAGE")
-        if self.storage_class is None:
-            self.storage_class = "django.core.files.storage.FileSystemStorage"
-            if not self.location:
-                self.location = Path("~/.migrateci")
-                self.location.expanduser().mkdir(parents=True, exist_ok=True)
+        self.storage_class = _setting(
+            "MIGRATECI_STORAGE",
+            "django.core.files.storage.FileSystemStorage",
+        )
 
 
 settings = SimpleLazyObject(Settings)

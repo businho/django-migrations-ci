@@ -66,5 +66,4 @@ jobs:
       env:
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
-        fail_ci_if_error: true
         verbose: true
