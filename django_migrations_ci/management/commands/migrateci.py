@@ -69,11 +69,18 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        location = str(location.expanduser())
+        location = location.expanduser()
+
+        default_storage_class = get_storage_class(
+            "django.core.files.storage.FileSystemStorage"
+        )
+        if issubclass(storage_class, default_storage_class) and not location:
+            location = Path("~/.migrateci").expanduser()
+            location.mkdir(parents=True, exist_ok=True)
 
         if verbosity >= 2:
             logger.info(f"Using storage {storage_class=} on {location=}.")
-        storage = storage_class(location=location)
+        storage = storage_class(location=str(location))
 
         _, files = storage.listdir("")
         files = set(files)
