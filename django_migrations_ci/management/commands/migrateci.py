@@ -120,7 +120,7 @@ class Command(BaseCommand):
 
         if cached_files:
             if verbosity >= 2:
-                logger.info("Create test db from cache.")
+                logger.info(f"Create test db from cache {cached_checksum=}.")
             django.create_test_db(verbosity=verbosity)
             for connection in unique_connections:
                 cached_file = cached_files[connection.alias]
