@@ -151,7 +151,7 @@ def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
 def load(connection, input_file, storage, *, verbosity=1):
     if verbosity:
         db_name = connection.settings_dict["NAME"]
-        logger.info(f"Load {input_file} SQL to {db_name}")
+        logger.info(f"Load {input_file} to {db_name}")
     with storage.open(input_file, "r") as f:
         sql = f.read()
     with connection.cursor() as cursor:
@@ -166,7 +166,7 @@ def load(connection, input_file, storage, *, verbosity=1):
 def dump(connection, output_file, storage, *, verbosity=1):
     if verbosity:
         db_name = connection.settings_dict["NAME"]
-        logger.info(f"Load {output_file} SQL to {db_name}")
+        logger.info(f"Dump {db_name} to {output_file}.")
 
     backend = _get_db_backend(connection)
 
