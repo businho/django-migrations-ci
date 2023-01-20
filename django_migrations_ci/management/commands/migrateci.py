@@ -69,7 +69,7 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        location = location.expanduser()
+        location = str(location.expanduser())
 
         if verbosity >= 2:
             logger.info(f"Using storage {storage_class=} on {location=}.")
