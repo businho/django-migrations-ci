@@ -36,13 +36,13 @@ def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=Non
     execute_from_command_line(args)
 
 
-def test_migrateci():
-    execute_from_command_line(["manage.py", "migrateci"])
+def test_migrateci(tmpdir):
+    cli(location=tmpdir)
     _check_db(connections["default"])
 
 
 def test_migrateci_parallel(tmpdir):
-    cli(parallel=1, location=tmpdir)
+    cli(location=tmpdir, parallel=1)
     connection = connections["default"]
     _check_db(connection)
     _check_db(connection, suffix="1")
