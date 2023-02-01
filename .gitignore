@@ -9,3 +9,4 @@ dist/
 .python-version
 *.sqlite3
 coverage.xml
+poetry.lock

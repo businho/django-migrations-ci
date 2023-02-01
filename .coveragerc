@@ -1,9 +1,0 @@
-[run]
-branch=True
-concurrency=multiprocessing
-parallel=True
-
-[report]
-precision=2
-skip_covered=True
-show_missing=True
