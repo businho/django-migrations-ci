@@ -9,7 +9,7 @@ def _setting(setting, default=None):
 class Settings:
     def __init__(self):
         self.location = _setting("MIGRATECI_LOCATION", "")
-        self.depth = _setting("MIGRATECI_DEPTH", 0)
+        self.depth = _setting("MIGRATECI_DEPTH", 1)
         self.is_pytest = _setting("MIGRATECI_PYTEST", False)
         self.parallel = _setting("MIGRATECI_PARALLEL", None)
 

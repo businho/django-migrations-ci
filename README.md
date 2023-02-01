@@ -22,32 +22,6 @@ INSTALLED_APPS = [
 ]
 ```
 
-## Configure storage
-
-By default, the lib uses the default `FileSystemStorage` to read and write cache
-files, but it uses [Django File storage API](https://docs.djangoproject.com/en/4.1/ref/files/storage/),
-so you can integrate with any [django-storages](https://django-storages.readthedocs.io/).
-
-Saving cache files to an external storage allow the lib to reuse partial migrations.
-When you write a new migration, it will try to get a cache without this
-last migration and load from it, running only the new migrations.
-
-```python
-from storages.backends.s3boto3 import S3Boto3Storage
-
-class MigrateCIStorage(S3Boto3Storage):
-    bucket_name = "mybucket-migrateci-cache"
-    region_name = "us-east-1"
-    object_parameters = {
-        "StorageClass": "REDUCED_REDUNDANCY",
-    }
-```
-
-This configuration is specific to your storage, maybe you have to add credentials
-there too.
-
-Pass the module path to command `migrateci` with `--storage-class foo.MigrateCIStorage`.
-
 ## How to use
 
 The command `migrateci` execute all migrations and save dump files `migrateci-*`.
@@ -91,52 +65,86 @@ pytest --reuse-db --parallel $(nproc)
 Check [database names for parallel tests](#database-names-for-parallel-tests) for
 details. 
 
-## Cache example on GitHub (legacy)
+## Settings
 
-It still works, but prefer to use external cache to support partial migrations.
+##### `MIGRATECI_STORAGE="django.core.files.storage.FileSystemStorage"`
+
+File storage class. The [django-storages](https://pypi.org/project/django-storages/) package has many backends implemented.
+
+Saving cache files to an external storage allow the lib to reuse partial migrations.
+When you write a new migration, it will try to get a cache without this
+last migration and load from it, running only the new migrations.
+
+The [example app has a basic S3 configuration](example/settings.py#L29-L34), but it's possible
+to use any custom backend:
+
+```python
+from storages.backends.s3boto3 import S3Boto3Storage
+
+class MigrateCIStorage(S3Boto3Storage):
+    bucket_name = "mybucket-migrateci-cache"
+    region_name = "us-east-1"
+    object_parameters = {
+        "StorageClass": "REDUCED_REDUNDANCY",
+    }
+```
+
+##### `MIGRATECI_LOCATION=""`
+
+[File storage API](https://docs.djangoproject.com/en/4.1/ref/files/storage/#the-filesystemstorage-class) has a location arg that all backend use in some way.
+
+If no storage is defined, it defaults to `~/.migrateci` to make it easy to work local.
+
+##### `MIGRATECI_PYTEST=False`
+
+The [`pytest-django`](https://pypi.org/project/pytest-django) package use custom test database names.
+
+If you use it and don´t change their default fixtures, just use `MIGRATECI_PYTEST=True`.
+
+
+#### `MIGRATECI_PARALLEL=None`
+
+Before tests, Django execute all migrations in one database and clone it to be able to run parallel tests.
+Use `MIGRATECI_PARALLEL="auto"` to create one database per process or define the exact number of processes with `MIGRATECI_PARALLEL=4`.
+
+It supports how Django test and how [pytest-xdist](https://pypi.org/project/pytest-xdist) works.
+
+#### `MIGRATECI_DEPTH=1`
+
+This is how we decide which migration cache to use.
+
+First, it'll try to find a cache with all migration files, but in some cases it's not possible,
+like when you just pushed a new migration.
+
+For `MIGRATECI_DEPTH=1`, it'll remove one migration a time for each Django app installed and check if some cached migration exists. It support the most common use case and it's reasonably fast.
+
+Bigger values cause a cost operation, it'll remove N migrations a time and check if some cached migration exists. It's a combination of every Django app. E.g. for 10 apps, it'll take at most 10^N checks, with some hashing operations.
+
+### Command line settings
+
+All below settings can be defined through command line args.
 
 ```
-    steps:
-    - uses: actions/cache@v3
-      name: Cache migrations
-      with:
-        path: migrateci-*
-        key: ${{ hashFiles('requirements.txt', '**/migrations/*.py') }}
-    - name: Migrate database
-      run: ./manage.py migrateci --parallel $(nproc)
-    - name: Test with Django
-      run: ./manage.py test --keepdb --parallel $(nproc)
-```
+manage.py migrateci [-h] [-n PARALLEL] [--storage STORAGE_CLASS] [--location LOCATION]
+[--pytest] [--depth DEPTH] [-v {0,1,2,3}]
 
-## Cache example on GitLab (legacy)
-
-It still works, but prefer to use external cache to support partial migrations.
-
-```
-test_job:
-  stage: test
-  script:
-    # GitLab cache works only for files in $CI_PROJECT_DIR.
-    - ./manage.py migrateci $(nproc) --directory $CI_PROJECT_DIR
-    - ./manage.py test --keepdb --parallel $(nproc)
-  cache:
-    key:
-      # GitLab docs say it accepts only two files, but for some reason it works
-      # with wildcards too. You can't add more than two lines here.
-      files:
-        - requirements.txt
-        - "*/migrations/*.py"
-    paths:
-      - migrateci-*
+options:
+  -h, --help            show this help message and exit
+  -n PARALLEL, --parallel PARALLEL
+  --storage STORAGE_CLASS
+  --location LOCATION
+  --pytest
+  --depth DEPTH
+  -v {0,1,2,3}
 ```
 
 ## Local migration caching
 
-It is not possible to use "CI caching" for local runs, but we can use a folder
-to cache on disk.
+As a stretch of this package, it's possible to use the same strategy during local
+development. It'll by default cache files at `~/.migrateci`.
 
 ```shell
-./manage.py migrateci --parallel $(nproc) --directory ~/.migrateci
+./manage.py migrateci --parallel $(nproc)
 ./manage.py test --keepdb --parallel $(nproc)
 ```
 
