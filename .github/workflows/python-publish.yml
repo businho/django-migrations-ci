@@ -27,4 +27,5 @@ jobs:
       uses: JRubics/poetry-publish@v1.15
       with:
         plugins: poetry_dynamic_versioning[plugin]
+        ignore_dev_requirements: true
         pypi_token: ${{ secrets.PYPI_API_TOKEN }}
