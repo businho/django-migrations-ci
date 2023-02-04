@@ -129,7 +129,7 @@ class Command(BaseCommand):
                 database_name, db_created = django.create_test_db(
                     connection, verbosity=verbosity, keepdb=reuse_db
                 )
-                if db_created:
+                if db_created or not reuse_db:
                     cached_file = cached_files[connection.alias]
                     with django.test_db(connection):
                         django.load(

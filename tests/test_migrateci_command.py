@@ -97,7 +97,7 @@ def test_migrateci_cached_partial(mocker, tmpdir):
     shutil.copyfile(migration_file, migration_cached)
     load_spy = mocker.spy(django, "load")
     setup_test_db_spy = mocker.spy(django, "setup_test_db")
-    cli(location=tmpdir, depth=1)
+    cli(location=tmpdir)
     setup_test_db_spy.assert_called_once()
     load_spy.assert_called_once()
     assert load_spy.call_args[0][1] == migration_cached.basename
