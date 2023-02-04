@@ -38,6 +38,7 @@ class Command(BaseCommand):
             type=get_storage_class,
         )
         parser.add_argument("--depth", type=int, default=settings.depth)
+        parser.add_argument("--reuse-db", action="store_true", default=False)
 
     def _setup_logging(self):
         lib_logger = logging.getLogger("django_migrations_ci")
@@ -53,6 +54,7 @@ class Command(BaseCommand):
         storage_class,
         depth,
         verbosity,
+        reuse_db,
         **options,
     ):
         self._setup_logging()
@@ -123,11 +125,18 @@ class Command(BaseCommand):
         if cached_files:
             if verbosity >= 2:
                 logger.info(f"Create test db from cache {cached_checksum=}.")
-            django.create_test_db(verbosity=verbosity)
             for connection in unique_connections:
-                cached_file = cached_files[connection.alias]
-                with django.test_db(connection):
-                    django.load(connection, cached_file, storage, verbosity=verbosity)
+                database_name, db_created = django.create_test_db(
+                    connection, verbosity=verbosity, keepdb=reuse_db
+                )
+                if db_created:
+                    cached_file = cached_files[connection.alias]
+                    with django.test_db(connection):
+                        django.load(
+                            connection, cached_file, storage, verbosity=verbosity
+                        )
+                elif verbosity >= 2:
+                    logger.info(f"Reusing database {database_name}.")
 
         if current_checksum != cached_checksum:
             if verbosity >= 2:

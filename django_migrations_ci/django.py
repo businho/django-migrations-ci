@@ -6,6 +6,7 @@ import os
 import re
 import tempfile
 from contextlib import contextmanager
+from unittest import mock
 
 from django.conf import settings
 from django.db import connections
@@ -24,11 +25,38 @@ def _get_db_backend(connection):
     return importlib.import_module(vendor_map[connection.vendor])
 
 
-def create_test_db(*, verbosity=1):
-    for connection in get_unique_connections():
-        connection.creation._create_test_db(
-            verbosity=verbosity, autoclobber=True, keepdb=False
+def create_test_db(connection, *, keepdb=False, verbosity=1):
+    database_created = True
+
+    def _patch_create_db(cursor, parameters, keepdb=False):
+        nonlocal database_created
+
+        if keepdb:
+            try:
+                database_exists = connection.creation._database_exists(
+                    cursor, parameters["dbname"]
+                )
+            except AttributeError:
+                # Only `postgresql.creation` has `database_exists` method.
+                pass
+            else:
+                if database_exists:
+                    database_created = False
+                    return
+
+        try:
+            return original_func(cursor, parameters, keepdb)
+        except Exception:
+            database_created = False
+
+    original_func = connection.creation._execute_create_test_db
+    with mock.patch.object(
+        connection.creation, "_execute_create_test_db", side_effect=_patch_create_db
+    ):
+        database_name = connection.creation._create_test_db(
+            verbosity=verbosity, autoclobber=True, keepdb=keepdb
         )
+    return database_name, database_created
 
 
 def get_unique_connections():

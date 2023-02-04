@@ -38,11 +38,10 @@ This is how the "run test" CI job should work.
 ./manage.py test --keepdb
 ```
 
-It works with `pytest-django` too:
+It works with `pytest-django` too as a plugin:
 
 ```shell
-./manage.py migrateci --pytest
-pytest --reuse-db
+pytest --migrateci --reuse-db
 ```
 
 ## Parallel tests
@@ -54,16 +53,11 @@ pytest --reuse-db
 
 ### Parallel tests with pytest-django
 
-When running parallel tests using `pytest-django`, use option `--pytest`,
-because generated database names are different and lib handle it internally.
-
 ```shell
-./manage.py migrateci --pytest --parallel $(nproc)
-pytest --reuse-db --parallel $(nproc)
+pytest --migrateci --reuse-db --parallel $(nproc)
 ```
 
-Check [database names for parallel tests](#database-names-for-parallel-tests) for
-details. 
+Also check [database names for parallel tests](#database-names-for-parallel-tests).
 
 ## Settings
 

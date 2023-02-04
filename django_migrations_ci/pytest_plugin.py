@@ -5,7 +5,7 @@ from django.core.management import call_command
 
 
 def pytest_addoption(parser):
-    group = parser.getgroup("general")
+    group = parser.getgroup("migrateci")
     group.addoption(
         "--migrateci", action="store_true", help="run migrateci before tests"
     )
@@ -38,6 +38,18 @@ def pytest_configure(config):
     parallel = getattr(config.option, "numprocesses", None)
     if parallel:
         command_kwargs["parallel"] = parallel
+
+    # Option reuse_db is from pytest-django.
+    create_db = config.option.create_db
+
+    # Make pytest-django never create db because migrateci already do it.
+    config.option.create_db = False
+
+    reuse_db = getattr(config.option, "reuse_db", False)
+    print(f"{reuse_db=} {create_db=}")
+    if reuse_db and not create_db:
+        command_kwargs["reuse_db"] = True
+
     if config.option.migrateci_location:
         command_kwargs["location"] = config.option.migrateci_location
     if config.option.migrateci_storage:
