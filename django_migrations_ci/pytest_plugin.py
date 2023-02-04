@@ -46,7 +46,6 @@ def pytest_configure(config):
     config.option.create_db = False
 
     reuse_db = getattr(config.option, "reuse_db", False)
-    print(f"{reuse_db=} {create_db=}")
     if reuse_db and not create_db:
         command_kwargs["reuse_db"] = True
 
