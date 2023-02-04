@@ -85,7 +85,7 @@ def test_migrateci_cached(mocker, tmpdir):
     """Apply all cached migrations, no setup needed after that."""
     connection = connections["default"]
     migration_file = Path(__file__).parent / f"dump/0002/{connection.vendor}.sql"
-    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0002}"
+    migration_cached = tmpdir / f"migrateci-{connection.vendor}-default-{CHECKSUM_0002}"
     shutil.copyfile(migration_file, migration_cached)
     setup_test_db_mock = mocker.patch("django_migrations_ci.django.setup_test_db")
     cli(location=tmpdir)
@@ -97,7 +97,7 @@ def test_migrateci_cached_partial(mocker, tmpdir):
     """Apply one cached migration and setup after that."""
     connection = connections["default"]
     migration_file = Path(__file__).parent / f"dump/0001/{connection.vendor}.sql"
-    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0001}"
+    migration_cached = tmpdir / f"migrateci-{connection.vendor}-default-{CHECKSUM_0001}"
     shutil.copyfile(migration_file, migration_cached)
     load_spy = mocker.spy(django, "load")
     setup_test_db_spy = mocker.spy(django, "setup_test_db")
@@ -110,8 +110,9 @@ def test_migrateci_cached_partial(mocker, tmpdir):
 
 def test_migrateci_location(tmpdir):
     cli(location=tmpdir)
-    _check_db(connections["default"])
-    migration_cached = tmpdir / f"migrateci-default-{CHECKSUM_0002}"
+    connection = connections["default"]
+    _check_db(connection)
+    migration_cached = tmpdir / f"migrateci-{connection.vendor}-default-{CHECKSUM_0002}"
     assert migration_cached.exists()
 
 
