@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from django.core.files.storage import FileSystemStorage
 from django.core.management import execute_from_command_line
 from django.db import connections
 from django.db.utils import OperationalError
@@ -24,6 +25,7 @@ def cli(
     *,
     parallel=None,
     pytest=False,
+    storage=None,
     location=None,
     depth=None,
     reuse_db=False,
@@ -36,6 +38,8 @@ def cli(
         args.append("--pytest")
     if location:
         args.append(f"--location={location}")
+    if storage:
+        args.append(f"--storage={storage}")
     if verbosity:
         args.append(f"-v{verbosity}")
     if depth:
@@ -120,3 +124,17 @@ def test_migrateci_reuse_db(mocker, tmpdir):
     load_spy = mocker.spy(django, "load")
     cli(location=tmpdir, reuse_db=True)
     load_spy.assert_not_called()
+
+
+class StorageSpy(FileSystemStorage):
+    initialized_with = []
+
+    def __init__(self, location):
+        super().__init__(location)
+        self.initialized_with.append(location)
+
+
+def test_default_location(mocker, tmpdir):
+    cli(storage="tests.test_migrateci_command.StorageSpy")
+    expected_path = Path("~/.migrateci").expanduser()
+    assert StorageSpy.initialized_with[0] == str(expected_path)
