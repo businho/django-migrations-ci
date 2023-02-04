@@ -1,10 +1,10 @@
 import shutil
 from pathlib import Path
 
+import pytest
 from django.core.management import execute_from_command_line
 from django.db import connections
 from django.db.utils import OperationalError
-import pytest
 
 from django_migrations_ci import django
 

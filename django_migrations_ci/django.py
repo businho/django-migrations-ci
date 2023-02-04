@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 import hashlib
 import importlib
 import itertools
@@ -6,6 +5,7 @@ import logging
 import os
 import re
 import tempfile
+from contextlib import contextmanager
 
 from django.conf import settings
 from django.db import connections
