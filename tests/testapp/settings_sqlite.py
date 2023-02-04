@@ -11,4 +11,11 @@ DATABASES = {
             "NAME": "dbtest.sqlite3",
         },
     },
+    "replica": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "replica.sqlite3",
+        "TEST": {
+            "MIRROR": "default",
+        },
+    },
 }
