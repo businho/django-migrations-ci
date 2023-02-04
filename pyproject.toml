@@ -31,6 +31,9 @@ enable = true
 [tool.pytest.ini_options]
 addopts = "--capture=no --cov=django_migrations_ci --cov-report term --cov-report xml"
 
+[tool.poetry.plugins]
+pytest11 = { migrateci = "django_migrations_ci.pytest_plugin" }
+
 [tool.coverage.run]
 branch = true
 concurrency = ["multiprocessing"]

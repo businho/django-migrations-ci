@@ -20,7 +20,15 @@ def _check_db(connection, suffix=""):
     assert list(result) == [(1, "BUS3R")]
 
 
-def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=None):
+def cli(
+    *,
+    parallel=None,
+    pytest=False,
+    location=None,
+    depth=None,
+    reuse_db=False,
+    verbosity=None,
+):
     args = ["manage.py", "migrateci"]
     if parallel is not None:
         args.append(f"--parallel={parallel}")
@@ -32,6 +40,8 @@ def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=Non
         args.append(f"-v{verbosity}")
     if depth:
         args.append(f"--depth={depth}")
+    if reuse_db:
+        args.append("--reuse-db")
 
     execute_from_command_line(args)
 
@@ -87,7 +97,7 @@ def test_migrateci_cached_partial(mocker, tmpdir):
     shutil.copyfile(migration_file, migration_cached)
     load_spy = mocker.spy(django, "load")
     setup_test_db_spy = mocker.spy(django, "setup_test_db")
-    cli(location=tmpdir, depth=1)
+    cli(location=tmpdir)
     setup_test_db_spy.assert_called_once()
     load_spy.assert_called_once()
     assert load_spy.call_args[0][1] == migration_cached.basename
@@ -104,3 +114,9 @@ def test_migrateci_location(tmpdir):
 def test_migrateci_verbose(tmpdir):
     cli(location=tmpdir, verbosity=3)
     _check_db(connections["default"])
+
+
+def test_migrateci_reuse_db(mocker, tmpdir):
+    load_spy = mocker.spy(django, "load")
+    cli(location=tmpdir, reuse_db=True)
+    load_spy.assert_not_called()
