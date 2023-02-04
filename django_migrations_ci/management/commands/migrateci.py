@@ -30,12 +30,6 @@ class Command(BaseCommand):
             action="store_true",
             default=settings.is_pytest,
         )
-        parser.add_argument(
-            "--directory",
-            dest="location",
-            default=settings.location,
-            help="Deprecated, use --location instead.",
-        )
         parser.add_argument("--location", default=settings.location)
         parser.add_argument(
             "--storage",
