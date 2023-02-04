@@ -20,7 +20,7 @@ def _check_db(connection, suffix=""):
     assert list(result) == [(1, "BUS3R")]
 
 
-def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=None):
+def cli(*, parallel=None, pytest=False, location=None, depth=None, reuse_db=False, verbosity=None):
     args = ["manage.py", "migrateci"]
     if parallel is not None:
         args.append(f"--parallel={parallel}")
@@ -32,6 +32,8 @@ def cli(*, parallel=None, pytest=False, location=None, depth=None, verbosity=Non
         args.append(f"-v{verbosity}")
     if depth:
         args.append(f"--depth={depth}")
+    if reuse_db:
+        args.append("--reuse-db")
 
     execute_from_command_line(args)
 
@@ -104,3 +106,9 @@ def test_migrateci_location(tmpdir):
 def test_migrateci_verbose(tmpdir):
     cli(location=tmpdir, verbosity=3)
     _check_db(connections["default"])
+
+
+def test_migrateci_reuse_db(mocker, tmpdir):
+    load_spy = mocker.spy(django, "load")
+    cli(location=tmpdir, reuse_db=True)
+    load_spy.assert_not_called()
