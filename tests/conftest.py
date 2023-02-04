@@ -8,7 +8,7 @@ from django_migrations_ci import django
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_env():
-    os.environ["DJANGO_SETTINGS_MODULE"] = "django_migrations_ci.tests.testapp.settings"
+    os.environ["DJANGO_SETTINGS_MODULE"] = "tests.testapp.settings"
 
 
 def _rm(pathname):
