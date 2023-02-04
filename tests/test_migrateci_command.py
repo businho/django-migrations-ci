@@ -20,7 +20,15 @@ def _check_db(connection, suffix=""):
     assert list(result) == [(1, "BUS3R")]
 
 
-def cli(*, parallel=None, pytest=False, location=None, depth=None, reuse_db=False, verbosity=None):
+def cli(
+    *,
+    parallel=None,
+    pytest=False,
+    location=None,
+    depth=None,
+    reuse_db=False,
+    verbosity=None,
+):
     args = ["manage.py", "migrateci"]
     if parallel is not None:
         args.append(f"--parallel={parallel}")
