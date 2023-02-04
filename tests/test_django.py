@@ -1,6 +1,6 @@
+import django as djangoframework
 import pytest
 
-import django as djangoframework
 from django_migrations_ci import django
 
 

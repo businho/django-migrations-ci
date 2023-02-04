@@ -34,7 +34,7 @@ pytest-mock = "^3.10.0"
 enable = true
 
 [tool.pytest.ini_options]
-addopts = "-s --black --flake8 --cov=django_migrations_ci --cov-report term --cov-report xml"
+addopts = "-s --black --flake8 --isort --cov=django_migrations_ci --cov-report term --cov-report xml"
 
 [tool.coverage.run]
 branch = true
