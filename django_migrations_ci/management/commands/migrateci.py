@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     logger.info(f"Migrations current checksum is {current_checksum}.")
 
             cached_files = {
-                connection.alias: f"migrateci-{connection.alias}-{cached_checksum}"
+                connection.alias: _migration_filename(connection, cached_checksum)
                 for connection in unique_connections
             }
             if all(f in files for f in cached_files.values()):
@@ -146,7 +146,7 @@ class Command(BaseCommand):
 
             django.setup_test_db(verbosity=verbosity)
             for connection in unique_connections:
-                current_file = f"migrateci-{connection.alias}-{current_checksum}"
+                current_file = _migration_filename(connection, current_checksum)
                 with django.test_db(connection):
                     django.dump(connection, current_file, storage, verbosity=verbosity)
 
@@ -161,3 +161,7 @@ class Command(BaseCommand):
                         is_pytest=is_pytest,
                         verbosity=verbosity,
                     )
+
+
+def _migration_filename(connection, checksum):
+    return f"migrateci-{connection.vendor}-{connection.alias}-{checksum}"
