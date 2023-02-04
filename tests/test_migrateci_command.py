@@ -115,8 +115,9 @@ def test_migrateci_location(tmpdir):
     assert migration_cached.exists()
 
 
-def test_migrateci_verbose(tmpdir):
-    cli(location=tmpdir, verbosity=3)
+@pytest.mark.parametrize("verbosity", [0, 1, 2, 3])
+def test_migrateci_verbose(tmpdir, verbosity):
+    cli(location=tmpdir, verbosity=verbosity)
     _check_db(connections["default"])
 
 
