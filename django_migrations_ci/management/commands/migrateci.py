@@ -35,7 +35,6 @@ class Command(BaseCommand):
             "--storage",
             dest="storage_class",
             default=settings.storage_class,
-            type=get_storage_class,
         )
         parser.add_argument("--depth", type=int, default=settings.depth)
         parser.add_argument("--reuse-db", action="store_true", default=False)
@@ -64,6 +63,7 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
+        storage_class = get_storage_class(storage_class)
         if location:
             location = str(Path(location).expanduser())
         else:

@@ -11,7 +11,7 @@ def pytest_addoption(parser):
     )
     group.addoption("--migrateci-location")
     group.addoption("--migrateci-storage")
-    group.addoption("--migrateci-depth")
+    group.addoption("--migrateci-depth", type=int)
 
 
 def pytest_configure(config):
