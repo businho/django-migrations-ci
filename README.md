@@ -44,6 +44,9 @@ It works with `pytest-django` too as a plugin:
 pytest --migrateci --reuse-db
 ```
 
+The recommended way to work with it is configuring default [pytest `addopts`](https://docs.pytest.org/en/7.1.x/example/simple.html#how-to-change-command-line-options-defaults) with `--migrateci --reuse-db` to run without recreating database. When you want to recreate, run pytest with `--create-db` that has precedence over `--reuse-db`.
+
+
 ## Parallel tests
 
 ```shell
