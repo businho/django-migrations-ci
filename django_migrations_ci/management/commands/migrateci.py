@@ -122,21 +122,18 @@ class Command(BaseCommand):
             if verbosity:
                 logger.info("Database cache does not exist.")
 
-        if cached_files:
-            if verbosity >= 2:
-                logger.info(f"Create test db from cache {cached_checksum=}.")
-            for connection in unique_connections:
-                database_name, db_created = django.create_test_db(
-                    connection, verbosity=verbosity, keepdb=reuse_db
-                )
-                if db_created or not reuse_db:
-                    cached_file = cached_files[connection.alias]
-                    with django.test_db(connection):
-                        django.load(
-                            connection, cached_file, storage, verbosity=verbosity
-                        )
-                elif verbosity >= 2:
-                    logger.info(f"Reusing database {database_name}.")
+        for connection in unique_connections:
+            database_name, db_created = django.create_test_db(
+                connection, verbosity=verbosity, keepdb=reuse_db
+            )
+            if cached_files and db_created:
+                cached_file = cached_files[connection.alias]
+                with django.test_db(connection):
+                    django.load(
+                        connection, cached_file, storage, verbosity=verbosity
+                    )
+            elif verbosity >= 2:
+                logger.info(f"Reusing database {database_name}.")
 
         if current_checksum != cached_checksum:
             if verbosity >= 2:

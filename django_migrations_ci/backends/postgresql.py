@@ -7,6 +7,11 @@ def dump(connection, output_file):
     shell.exec(pg_dump.format(output_file=output_file, **ctx), env)
 
 
+def database_exists(connection, database_name):
+    with connection.creation._nodb_cursor() as cursor:
+        return connection.creation._database_exists(cursor, database_name)
+
+
 def _ctx(db_conf):
     env = {"PGPASSWORD": db_conf["PASSWORD"]}
     try:
