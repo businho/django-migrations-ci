@@ -48,6 +48,7 @@ def create_test_db(connection, *, keepdb=False, verbosity=1):
             return original_func(cursor, parameters, keepdb)
         except Exception:
             database_created = False
+            raise
 
     original_func = connection.creation._execute_create_test_db
     with mock.patch.object(
