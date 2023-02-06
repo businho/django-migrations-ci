@@ -7,6 +7,16 @@ def dump(connection, output_file):
     shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
 
 
+def database_exists(connection, database_name):
+    return connection.creation._database_exists(connection, database_name)
+    with connection._creation._nodb_cursor() as cursor:
+        cursor.execute(
+            "SELECT 1 FROM information_schema.schemata WHERE schema_name = %s",
+            [strip_quotes(database_name)],
+        )
+        return cursor.fetchone() is not None
+
+
 def _ctx(db_conf):
     env = {"MYSQL_PWD": db_conf["PASSWORD"]}
     try:

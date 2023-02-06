@@ -26,37 +26,14 @@ def _get_db_backend(connection):
 
 
 def create_test_db(connection, *, keepdb=False, verbosity=1):
-    database_created = True
-
-    def _patch_create_db(cursor, parameters, keepdb=False):
-        nonlocal database_created
-
-        if keepdb:
-            try:
-                database_exists = connection.creation._database_exists(
-                    cursor, parameters["dbname"]
-                )
-            except AttributeError:
-                # Only `postgresql.creation` has `database_exists` method.
-                pass
-            else:
-                if database_exists:
-                    database_created = False
-                    return
-
-        try:
-            return original_func(cursor, parameters, keepdb)
-        except Exception:
-            database_created = False
-            raise
-
-    original_func = connection.creation._execute_create_test_db
-    with mock.patch.object(
-        connection.creation, "_execute_create_test_db", side_effect=_patch_create_db
-    ):
-        database_name = connection.creation._create_test_db(
-            verbosity=verbosity, autoclobber=True, keepdb=keepdb
-        )
+    backend = _get_db_backend(connection)
+    test_database_name = connection.creation._get_test_db_name()
+    database_created = (
+        not keepdb or not backend.database_exists(connection, test_database_name)
+    )
+    database_name = connection.creation._create_test_db(
+        verbosity=verbosity, autoclobber=True, keepdb=keepdb
+    )
     return database_name, database_created
 
 
