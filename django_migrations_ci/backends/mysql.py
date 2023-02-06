@@ -1,3 +1,5 @@
+from django.db.backends.utils import strip_quotes
+
 from django_migrations_ci import shell
 
 
@@ -8,8 +10,7 @@ def dump(connection, output_file):
 
 
 def database_exists(connection, database_name):
-    return connection.creation._database_exists(connection, database_name)
-    with connection._creation._nodb_cursor() as cursor:
+    with connection.creation._nodb_cursor() as cursor:
         cursor.execute(
             "SELECT 1 FROM information_schema.schemata WHERE schema_name = %s",
             [strip_quotes(database_name)],

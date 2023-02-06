@@ -8,7 +8,8 @@ def dump(connection, output_file):
 
 
 def database_exists(connection, database_name):
-    return connection.creation._database_exists(connection, database_name)
+    with connection.creation._nodb_cursor() as cursor:
+        return connection.creation._database_exists(cursor, database_name)
 
 
 def _ctx(db_conf):

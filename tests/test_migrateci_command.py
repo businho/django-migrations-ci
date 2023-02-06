@@ -167,10 +167,10 @@ def test_reuse_db(tmpdir):
     # Create database.
     cli(location=tmpdir)
 
-    # Add some new data to it.
     connection = connections["default"]
     with django.test_db(connection):
         with connection.cursor() as cursor:
+            # Add some new data to it.
             cursor.execute("INSERT INTO testapp_bus VALUES (2, 'Hogwarts knight bus');")
 
     # Reuse database.
