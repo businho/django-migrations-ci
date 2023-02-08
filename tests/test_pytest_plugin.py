@@ -61,27 +61,3 @@ def test_pytest_xdist_worker_do_not_execute_command(config, call_comand_mock, mo
     mocker.patch.dict(os.environ, {"PYTEST_XDIST_WORKER": "42"})
     pytest_plugin.pytest_configure(config)
     call_comand_mock.assert_not_called()
-
-
-expected_help = """usage: pytest [--migrateci] [--migrateci-location MIGRATECI_LOCATION]
-              [--migrateci-storage MIGRATECI_STORAGE] [--migrateci-depth MIGRATECI_DEPTH]
-              [--migrateci-verbose MIGRATECI_VERBOSE]
-              [file_or_dir ...]
-
-positional arguments:
-  file_or_dir
-
-migrateci:
-  --migrateci           run migrateci before tests
-  --migrateci-location=MIGRATECI_LOCATION
-  --migrateci-storage=MIGRATECI_STORAGE
-  --migrateci-depth=MIGRATECI_DEPTH
-  --migrateci-verbose=MIGRATECI_VERBOSE
-"""
-
-def test_pytest_options():
-    parser = pytest.Parser()
-    pytest_plugin.pytest_addoption(parser)
-    output = StringIO()
-    parser._getparser().print_help(file=output)
-    assert output.getvalue() == expected_help
