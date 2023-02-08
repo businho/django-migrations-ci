@@ -222,6 +222,9 @@ def hash_files(depth=0):
                 copy_checksums[app_label] = remaining_checksums
 
             checksum = hashlib.md5()
-            for app_checksums in copy_checksums.values():
+            # Sort apps to be deterministic.
+            # Django enforce migration dependencies ordering, but it is not
+            # deterministic for migrations without direct dependency.
+            for _, app_checksums in sorted(copy_checksums.items()):
                 checksum.update("".join(app_checksums).encode())
             yield checksum.hexdigest()

@@ -12,10 +12,11 @@ def pytest_addoption(parser):
     group.addoption("--migrateci-location")
     group.addoption("--migrateci-storage")
     group.addoption("--migrateci-depth", type=int)
+    group.addoption("--migrateci-verbose", type=int)
 
 
 def pytest_configure(config):
-    if not config.option.migrateci:
+    if config.option.help or not config.option.migrateci:
         return
 
     try:
@@ -32,7 +33,11 @@ def pytest_configure(config):
     if worker_id is not None:
         return
 
-    command_kwargs = {"pytest": True, "verbosity": config.option.verbose}
+    verbosity = config.option.migrateci_verbose
+    if verbosity is None:
+        verbosity = config.option.verbose
+
+    command_kwargs = {"pytest": True}
 
     # Option numprocesses is from pytest-xdist and doesn't exist if it is not installed.
     parallel = getattr(config.option, "numprocesses", None)
@@ -53,8 +58,10 @@ def pytest_configure(config):
         command_kwargs["location"] = config.option.migrateci_location
     if config.option.migrateci_storage:
         command_kwargs["storage_class"] = config.option.migrateci_storage
-    if config.option.migrateci_depth:
+    if config.option.migrateci_depth is not None:
         command_kwargs["depth"] = config.option.migrateci_depth
+    if verbosity is not None:
+        command_kwargs["verbosity"] = verbosity
 
     with db_unblock():
         call_command("migrateci", **command_kwargs)
