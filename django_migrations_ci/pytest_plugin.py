@@ -19,6 +19,17 @@ def pytest_configure(config):
     if config.option.help or not config.option.migrateci:
         return
 
+    # Make pytest-django never create db because migrateci already do it.
+    # It must be changed even inside the xdist worker.
+    create_db = config.option.create_db
+    config.option.create_db = False
+
+    # I want to execute only on controller (without worker_id) to avoid multiple runs.
+    # It also works without pytest-xdist.
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
+    if worker_id is not None:
+        return
+
     try:
         from pytest_django.plugin import _blocking_manager
 
@@ -26,12 +37,6 @@ def pytest_configure(config):
     except ImportError:
         # The pytest-django lib is not installed, do nothing and hope for the best.
         db_unblock = nullcontext
-
-    # I want to execute only on controller (without worker_id) to avoid multiple runs.
-    # It also works without pytest-xdist.
-    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
-    if worker_id is not None:
-        return
 
     verbosity = config.option.migrateci_verbose
     if verbosity is None:
@@ -45,11 +50,6 @@ def pytest_configure(config):
         command_kwargs["parallel"] = parallel
 
     # Option reuse_db is from pytest-django.
-    create_db = config.option.create_db
-
-    # Make pytest-django never create db because migrateci already do it.
-    config.option.create_db = False
-
     reuse_db = getattr(config.option, "reuse_db", False)
     if reuse_db and not create_db:
         command_kwargs["reuse_db"] = True
