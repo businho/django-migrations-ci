@@ -25,6 +25,7 @@ def config(mocker):
             migrateci_verbose=None,
             numprocesses=None,
             verbose=1,
+            create_db=False,
         ),
     )
 
@@ -34,9 +35,14 @@ def call_comand_mock(mocker):
     return mocker.patch("django_migrations_ci.pytest_plugin.call_command")
 
 
+@pytest.fixture
+def pytest_xdist_worker(mocker):
+    mocker.patch.dict(os.environ, {"PYTEST_XDIST_WORKER": "42"})
+
+
 def test_pytest_configure(config, call_comand_mock):
     pytest_plugin.pytest_configure(config)
-    call_comand_mock.assert_called_with("migrateci", pytest=True, verbosity=1)
+    call_comand_mock.assert_called_with("migrateci", pytest=True, verbosity=1, reuse_db=True)
 
 
 def test_pytest_configure_all_options(config, call_comand_mock):
@@ -54,10 +60,18 @@ def test_pytest_configure_all_options(config, call_comand_mock):
         parallel=2,
         depth=3,
         verbosity=3,
+        reuse_db=True,
     )
 
 
-def test_pytest_xdist_worker_do_not_execute_command(config, call_comand_mock, mocker):
-    mocker.patch.dict(os.environ, {"PYTEST_XDIST_WORKER": "42"})
+def test_pytest_xdist_worker_do_not_execute_command(config, call_comand_mock, pytest_xdist_worker):
     pytest_plugin.pytest_configure(config)
     call_comand_mock.assert_not_called()
+    assert config.option.create_db is False
+
+
+def test_pytest_xdist_worker_create_db_unset(config, call_comand_mock, pytest_xdist_worker):
+    config.option.create_db = True
+    pytest_plugin.pytest_configure(config)
+    call_comand_mock.assert_not_called()
+    assert config.option.create_db is False
