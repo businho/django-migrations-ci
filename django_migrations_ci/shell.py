@@ -4,6 +4,10 @@ from subprocess import PIPE, Popen
 logger = logging.getLogger(__name__)
 
 
+class MigrateCIShellException(Exception):
+    pass
+
+
 def exec(command, env=None):
     logger.info(f"Running shell command {command}")
     p = Popen(
@@ -16,5 +20,5 @@ def exec(command, env=None):
     )
     stdout, stderr = p.communicate()
     if stderr:
-        logger.error(f"Error running shell command {command}\n{stdout=}\n{stderr=}")
-    return stdout, stderr
+        raise MigrateCIShellException(stderr.decode())
+    return stdout
