@@ -1,11 +1,12 @@
 import os
 
+from django_migrations_ci import shell
 
 def dump(connection, output_file):
-    connection.ensure_connection()
-    sql = "".join(f"{sql}\n" for sql in connection.connection.iterdump())
-    with open(output_file, "w") as f:
-        f.write(sql)
+    database = connection.settings_dict["NAME"]
+    stdout, stderr = shell.exec(f"sqlite3 {database} .dump")
+    with open(output_file, "wb") as f:
+        f.write(stdout)
 
 
 def database_exists(connection, database_name):
