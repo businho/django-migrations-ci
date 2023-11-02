@@ -6,9 +6,9 @@ from django_migrations_ci import shell
 def dump(connection, output_file):
     ctx, env = _ctx(connection.settings_dict)
     if ctx['port'] == "":
-        mysqldump = "mysqldump -h {host} -u {user} --databases {database} --result-file {output_file}"  # noqa: E501
+        mysqldump = "mysqldump -h {host} -u {user} {database} --result-file {output_file}"  # noqa: E501
     else:
-        mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database} --result-file {output_file}"  # noqa: E501
+        mysqldump = "mysqldump -h {host} -P {port} -u {user} {database} --result-file {output_file}"  # noqa: E501
     shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
 
 
