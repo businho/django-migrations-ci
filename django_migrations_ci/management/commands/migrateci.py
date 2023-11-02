@@ -65,7 +65,9 @@ class Command(BaseCommand):
 
         storage_class = get_storage_class(storage_class)
         if location:
-            location = str(Path(location).expanduser())
+            location_path = Path(location).expanduser()
+            location_path.mkdir(parents=True, exist_ok=True)
+            location = str(location_path)
         else:
             default_storage_class = get_storage_class(
                 "django.core.files.storage.FileSystemStorage"
