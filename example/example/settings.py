@@ -33,4 +33,7 @@ AWS_S3_REGION_NAME = "us-east-2"
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
+print(f"AWS_ACCESS_KEY_ID={len(AWS_ACCESS_KEY_ID)}")
+print(f"AWS_SECRET_ACCESS_KEY={len(AWS_SECRET_ACCESS_KEY)}")
+
 MIGRATECI_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
