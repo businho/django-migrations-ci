@@ -5,7 +5,7 @@ from django_migrations_ci import shell
 
 def dump(connection, output_file):
     ctx, env = _ctx(connection.settings_dict)
-    mysqldump = "mysqldump -h {host} -P {port} -u {user} --databases {database} --result-file {output_file}"  # noqa: E501
+    mysqldump = "mysqldump -h {host} -P {port} -u {user} --result-file {output_file} {database}"  # noqa: E501
     shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
 
 
@@ -27,7 +27,7 @@ def _ctx(db_conf):
 
     data = {
         "host": db_conf["HOST"],
-        "port": db_conf["PORT"],
+        "port": db_conf["PORT"] or 3306,
         "user": db_conf["USER"],
         "database": database,
     }
