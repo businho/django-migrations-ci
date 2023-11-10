@@ -3,7 +3,10 @@ from django_migrations_ci import shell
 
 def dump(connection, output_file):
     ctx, env = _ctx(connection.settings_dict)
-    pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -f {output_file} {database}"  # noqa: E501
+    if ctx["port"]:
+        pg_dump = "pg_dump --no-owner --inserts -h {host} -p {port} -U {user} -f {output_file} {database}"  # noqa: E501
+    else:
+        pg_dump = "pg_dump --no-owner --inserts -h {host} -U {user} -f {output_file} {database}"  # noqa: E501
     shell.exec(pg_dump.format(output_file=output_file, **ctx), env)
 
 
@@ -21,7 +24,7 @@ def _ctx(db_conf):
 
     data = {
         "host": db_conf["HOST"],
-        "port": db_conf["PORT"] or 5432,
+        "port": db_conf["PORT"],
         "user": db_conf["USER"],
         "database": database,
     }
