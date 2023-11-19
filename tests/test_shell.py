@@ -9,7 +9,7 @@ def test_shell_ok():
 
 
 def test_shell_error():
-    with pytest.raises(shell.MigrateCIShellException, match="/bin/sh: 1: oof: not found\n"):
+    with pytest.raises(shell.MigrateCIShellException, match=r"oof.+not found"):
         shell.exec("oof")
 
 
