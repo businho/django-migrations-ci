@@ -1,10 +1,8 @@
 import os
-from io import StringIO
 from unittest.mock import sentinel
 
 import django as djangoframework
 import pytest
-from pytest_django.plugin import blocking_manager_key, DjangoDbBlocker
 
 from django_migrations_ci import pytest_plugin
 
@@ -28,7 +26,6 @@ def config(mocker):
             verbose=1,
             create_db=False,
         ),
-        stash={blocking_manager_key: DjangoDbBlocker(_ispytest=True)}
     )
 
 
