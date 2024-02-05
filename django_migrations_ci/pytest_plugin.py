@@ -31,13 +31,16 @@ def pytest_configure(config):
         return
 
     try:
-        from pytest_django.plugin import blocking_manager_key
+        from pytest_django import plugin
 
-        blocking_manager = config.stash[blocking_manager_key]
-        db_unblock = blocking_manager.unblock
+        blocking_manager = config.stash[plugin.blocking_manager_key]
+    except AttributeError:
+        blocking_manager = plugin._blocking_manager
     except ImportError:
         # The pytest-django lib is not installed, do nothing and hope for the best.
         db_unblock = nullcontext
+    else:
+        db_unblock = blocking_manager.unblock
 
     verbosity = config.option.migrateci_verbose
     if verbosity is None:
