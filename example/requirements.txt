@@ -1,2 +1,5 @@
 django
-django-storages[boto3]
+django-storages
+pytest
+pytest-django<4.7
+pytest-xdist
