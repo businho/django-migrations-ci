@@ -7,7 +7,9 @@ from django.core.management import call_command
 def pytest_addoption(parser):
     group = parser.getgroup("migrateci")
     group.addoption(
-        "--migrateci", action="store_true", help="run migrateci before tests",
+        "--migrateci",
+        action="store_true",
+        help="run migrateci before tests",
     )
     group.addoption("--migrateci-location")
     group.addoption("--migrateci-storage")

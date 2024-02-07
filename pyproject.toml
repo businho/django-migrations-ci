@@ -98,4 +98,6 @@ ignore = [
     "SIM117",  # Use a single `with` statement with multiple contexts instead of nested `with` statements
     "SLF001",  # Private member accessed
     "TRY003",  # Avoid specifying long messages outside the exception class
+    # warning: The following rules may cause conflicts when used with the formatter: `COM812`, `ISC001`. To avoid unexpected behavior, we recommend disabling these rules, either by removing them from the `select` or `extend-select` configuration, or adding them to the `ignore` configuration.
+    "COM812", "ISC001",
 ]

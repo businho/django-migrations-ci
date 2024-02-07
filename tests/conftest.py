@@ -39,7 +39,7 @@ def drop_postgresql_test_databases():
             continue
         with connection.cursor() as cursor:
             cursor.execute("select datname FROM pg_database")
-            dbs = {db for db, in cursor.fetchall()}
+            dbs = {db for (db,) in cursor.fetchall()}
 
         for db in dbs:
             if db.startswith("test_"):

@@ -27,11 +27,13 @@ def _get_db_backend(connection):
 def create_test_db(connection, *, keepdb=False, verbosity=1):
     backend = _get_db_backend(connection)
     test_database_name = connection.creation._get_test_db_name()
-    database_created = (
-        not keepdb or not backend.database_exists(connection, test_database_name)
+    database_created = not keepdb or not backend.database_exists(
+        connection, test_database_name
     )
     database_name = connection.creation._create_test_db(
-        verbosity=verbosity, autoclobber=True, keepdb=keepdb,
+        verbosity=verbosity,
+        autoclobber=True,
+        keepdb=keepdb,
     )
     return database_name, database_created
 
@@ -81,7 +83,9 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             suffix = f"{index + 1}"
 
         connection.creation.clone_test_db(
-            suffix=suffix, verbosity=verbosity, keepdb=False,
+            suffix=suffix,
+            verbosity=verbosity,
+            keepdb=False,
         )
 
         if connection.vendor == "sqlite":
@@ -122,7 +126,9 @@ def test_db(connection, suffix=""):
             # or if it does not have an extension, database name will end with a dot.
             dotbug = ".." in _generated_db_name or _generated_db_name.endswith(".")
             test_db_name = _transform_sqlite_db_name(
-                test_db_name, suffix=suffix, dotbug=dotbug,
+                test_db_name,
+                suffix=suffix,
+                dotbug=dotbug,
             )
         else:
             test_db_name += f"_{suffix}"

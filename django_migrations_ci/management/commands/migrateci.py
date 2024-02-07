@@ -123,13 +123,18 @@ class Command(BaseCommand):
 
         for connection in unique_connections:
             database_name, db_created = django.create_test_db(
-                connection, verbosity=verbosity, keepdb=reuse_db,
+                connection,
+                verbosity=verbosity,
+                keepdb=reuse_db,
             )
             if cached_files and db_created:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
                     django.load(
-                        connection, cached_file, storage, verbosity=verbosity,
+                        connection,
+                        cached_file,
+                        storage,
+                        verbosity=verbosity,
                     )
             elif verbosity >= 2:
                 logger.info(f"Reusing database {database_name}.")
