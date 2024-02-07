@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+        pytest-django: ["<4.7", ">=4.7"]
 
     steps:
     - uses: actions/checkout@v3
@@ -35,6 +36,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         python -m pip install ..
+        python -m pip install "pytest-django${{ matrix.pytest-django }}"
     - name: Django migrate
       run: |
         ./manage.py migrateci -v3 --parallel 2
