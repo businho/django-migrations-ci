@@ -68,28 +68,20 @@ ignore = [
     "D203",  # warning: `one-blank-line-before-class` (D203) and `no-blank-line-before-class` (D211) are incompatible.
     "D213",  # warning: `multi-line-summary-first-line` (D212) and `multi-line-summary-second-line` (D213) are incompatible.
     "DJ008",  # Model does not define `__str__` method
-    "E501",  # Line too long
     "EM101",  # Exception must not use a string literal, assign to variable first
-    "ERA001",  # Found commented-out code
     "FBT002",  # Boolean default positional argument in function definition
     "FBT003",  # Boolean positional value in function call
     "G004",  # Logging statement uses f-string
     "N818",  # Exception name should be named with an Error suffix
     "PLR0912",  # Too many branches
     "PLR0913",  # Too many arguments in function definition (7 > 5)
-    "PLR0913",  # Too many arguments in function definition (8 > 5)
     "PLR0915",  # Too many statements
     "PLR2004",  # Magic value used in comparison, consider replacing `2` with a constant variable
     "PT004",  # Fixture does not return anything, add leading underscore
     "PT006",  # Wrong name(s) type in `@pytest.mark.parametrize`, expected `tuple`
-    "PT006",  # Wrong name(s) type in `@pytest.mark.parametrize`, expected `tuple`
     "PT009",  # Use a regular `assert` instead of unittest-style `assertEqual`
     "PTH104",  # `os.rename()` should be replaced by `Path.rename()`
     "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RET504",  # Unnecessary assignment to `db_name` before `return` statement
-    "RET504",  # Unnecessary assignment to `pytest_db_name` before `return` statement
-    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
-    "RUF100",  # [*] Unused `noqa` directive (non-enabled: `E501`)
     "S101",  # Use of `assert` detected
     "S105",  # Possible hardcoded password assigned to: "SECRET_KEY"
     "S324",  # Probable use of insecure hash functions in `hashlib`: `md5`

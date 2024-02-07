@@ -47,7 +47,7 @@ def get_unique_connections():
 
 
 def setup_test_db(*, verbosity=1):
-    # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054  # noqa: E501
+    # Based on https://github.com/django/django/blob/d62563cbb194c420f242bfced52b37d6638e67c6/django/test/runner.py#L1051-L1054
     unique_connections = get_unique_connections()
     database_names = {
         connection.alias: connection.settings_dict["NAME"]
@@ -75,7 +75,7 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
         if is_pytest:
             # pytest-django use test_db_gwN, from 0 to N-1.
             # e.g. test_db_gw0, test_db_gw1, ...
-            # https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61  # noqa: E501
+            # https://github.com/pytest-dev/pytest-django/blob/e0c77b391ea54c3b8d6ffbb593aa25188a0ce7e9/pytest_django/fixtures.py#L61
             suffix = f"gw{index}"
         else:
             # Django use test_db_N, from 1 to N.
@@ -103,7 +103,7 @@ def _fix_sqlite_pytest_suffix(db_name):
     # Django clone_test_db create file db_gw0.sqlite3, but pytest-django
     # expects db.sqlite3_gw0. Lets rename the file.
     pytest_db_name = re.sub(r"(_gw\d+)(\.)+(.+)$", r".\3\1", clean_db_name)
-    return pytest_db_name
+    return pytest_db_name  # noqa: RET504
 
 
 @contextmanager
@@ -156,7 +156,7 @@ def _transform_sqlite_db_name(db_name, *, suffix="", dotbug=False):
     db_name = re.sub(r"(.+)(\..+)$", rf"\1{suffix}\2", db_name)
     # db_gw1.sqlite3 to db.sqlite3_gw1
     db_name = re.sub(r"(_gw\d+)\.+(.+)$", r".\2\1", db_name)
-    return db_name
+    return db_name  # noqa: RET504
 
 
 def load(connection, input_file, storage, *, verbosity=1):
@@ -168,7 +168,7 @@ def load(connection, input_file, storage, *, verbosity=1):
     with connection.cursor() as cursor:
         if connection.vendor == "sqlite":
             # sqlite3 can't use execute() to run many statements, it fails with
-            # "sqlite3.Warning: You can only execute one statement at a time."
+            # sqlite3.Warning: You can only execute one statement at a time.
             cursor.executescript(sql)
         else:
             cursor.execute(sql)
