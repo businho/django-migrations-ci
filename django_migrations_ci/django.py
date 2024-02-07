@@ -6,7 +6,6 @@ import os
 import re
 import tempfile
 from contextlib import contextmanager
-from unittest import mock
 
 from django.conf import settings
 from django.db import connections
@@ -32,7 +31,7 @@ def create_test_db(connection, *, keepdb=False, verbosity=1):
         not keepdb or not backend.database_exists(connection, test_database_name)
     )
     database_name = connection.creation._create_test_db(
-        verbosity=verbosity, autoclobber=True, keepdb=keepdb
+        verbosity=verbosity, autoclobber=True, keepdb=keepdb,
     )
     return database_name, database_created
 
@@ -82,7 +81,7 @@ def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
             suffix = f"{index + 1}"
 
         connection.creation.clone_test_db(
-            suffix=suffix, verbosity=verbosity, keepdb=False
+            suffix=suffix, verbosity=verbosity, keepdb=False,
         )
 
         if connection.vendor == "sqlite":
@@ -123,7 +122,7 @@ def test_db(connection, suffix=""):
             # or if it does not have an extension, database name will end with a dot.
             dotbug = ".." in _generated_db_name or _generated_db_name.endswith(".")
             test_db_name = _transform_sqlite_db_name(
-                test_db_name, suffix=suffix, dotbug=dotbug
+                test_db_name, suffix=suffix, dotbug=dotbug,
             )
         else:
             test_db_name += f"_{suffix}"
@@ -182,15 +181,14 @@ def dump(connection, output_file, storage, *, verbosity=1):
 
     # Copy it to the storage.
     with (
-        open(tmp_filename, "r") as tmp_fp,
+        open(tmp_filename) as tmp_fp,
         storage.open(output_file, "w") as output_fp,
     ):
         output_fp.write(tmp_fp.read())
 
 
 def hash_files(depth=0):
-    """
-    Generate checksums based on migrations graph.
+    """Generate checksums based on migrations graph.
 
     Yield many checksums first based on all migrations, after that it tries to
     remove `depth` migrations per app.
@@ -212,7 +210,7 @@ def hash_files(depth=0):
         app_checksums = checksums.setdefault(app_label, [])
         app_checksums.append(checksum)
 
-    for n in range(0, depth + 1):
+    for n in range(depth + 1):
         combinations = itertools.combinations_with_replacement(checksums, n)
         for apps_to_remove_migration in combinations:
             copy_checksums = checksums.copy()

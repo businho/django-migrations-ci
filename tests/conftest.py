@@ -12,7 +12,7 @@ def setup_env():
 
 
 def _rm(pathname):
-    for filename in Path(".").glob(pathname):
+    for filename in Path().glob(pathname):
         Path(filename).unlink()
 
 

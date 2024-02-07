@@ -12,7 +12,7 @@ def setup_django():
     djangoframework.setup()
 
 
-@pytest.fixture
+@pytest.fixture()
 def config(mocker):
     return mocker.Mock(
         option=mocker.Mock(
@@ -29,12 +29,12 @@ def config(mocker):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def call_comand_mock(mocker):
     return mocker.patch("django_migrations_ci.pytest_plugin.call_command")
 
 
-@pytest.fixture
+@pytest.fixture()
 def pytest_xdist_worker(mocker):
     mocker.patch.dict(os.environ, {"PYTEST_XDIST_WORKER": "42"})
 
