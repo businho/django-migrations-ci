@@ -5,7 +5,7 @@ from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand, CommandError
 
 try:
-    from django.test.runner import get_max_test_processes
+    from django.test.runner import get_max_test_processes  # type: ignore[attr-defined]
 except ImportError:
     # Django<4
     def get_max_test_processes():

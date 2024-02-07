@@ -33,7 +33,7 @@ def pytest_configure(config):
         return
 
     try:
-        from pytest_django import plugin
+        from pytest_django import plugin  # type: ignore[import-untyped]
 
         db_unblock = config.stash[plugin.blocking_manager_key].unblock
     except AttributeError:
