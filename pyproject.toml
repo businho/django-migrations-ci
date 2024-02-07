@@ -49,6 +49,12 @@ skip_covered = true
 exclude = [
     "example/",
 ]
+plugins = [
+    "mypy_django_plugin.main",
+]
+[tool.django-stubs]
+django_settings_module = "tests.testapp.settings"
+
 
 [tool.ruff.lint]
 select = ["ALL"]
