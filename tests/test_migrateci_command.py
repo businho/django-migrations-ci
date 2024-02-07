@@ -1,5 +1,6 @@
 import shutil
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 from django.core.files.storage import FileSystemStorage
@@ -133,7 +134,7 @@ def test_migrateci_reuse_db(mocker, tmpdir):
 
 
 class StorageSpy(FileSystemStorage):
-    initialized_with = []
+    initialized_with: ClassVar = []
 
     def __init__(self, location):
         super().__init__(location)

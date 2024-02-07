@@ -11,7 +11,7 @@ except ImportError:
     def get_max_test_processes():
         raise CommandError(
             "Django<4 do not implement get_max_test_processes."
-            " Use --parallel $(nproc) to not depend on this."
+            " Use --parallel $(nproc) to not depend on this.",
         )
 
 
@@ -65,7 +65,7 @@ class Command(BaseCommand):
 
         storage_class = get_storage_class(storage_class)
         default_storage_class = get_storage_class(
-            "django.core.files.storage.FileSystemStorage"
+            "django.core.files.storage.FileSystemStorage",
         )
         if issubclass(storage_class, default_storage_class):
             if not location:
@@ -101,18 +101,18 @@ class Command(BaseCommand):
             if all(f in files for f in cached_files.values()):
                 if verbosity:
                     logger.info(
-                        f"Migrations cache found with checksum {cached_checksum}."
+                        f"Migrations cache found with checksum {cached_checksum}.",
                     )
                 if verbosity >= 3:
                     for other_checksum in checksums:
                         logger.info(
-                            f"Calculated checksum {other_checksum} not evaluated."
+                            f"Calculated checksum {other_checksum} not evaluated.",
                         )
                 break
 
             if verbosity >= 2:
                 logger.info(
-                    f"Migrations cache NOT found for checksum {cached_checksum}."
+                    f"Migrations cache NOT found for checksum {cached_checksum}.",
                 )
 
         else:
@@ -123,13 +123,18 @@ class Command(BaseCommand):
 
         for connection in unique_connections:
             database_name, db_created = django.create_test_db(
-                connection, verbosity=verbosity, keepdb=reuse_db
+                connection,
+                verbosity=verbosity,
+                keepdb=reuse_db,
             )
             if cached_files and db_created:
                 cached_file = cached_files[connection.alias]
                 with django.test_db(connection):
                     django.load(
-                        connection, cached_file, storage, verbosity=verbosity
+                        connection,
+                        cached_file,
+                        storage,
+                        verbosity=verbosity,
                     )
             elif verbosity >= 2:
                 logger.info(f"Reusing database {database_name}.")
@@ -137,7 +142,7 @@ class Command(BaseCommand):
         if current_checksum != cached_checksum:
             if verbosity >= 2:
                 logger.info(
-                    f"Setup test db from {cached_checksum=} to {current_checksum=}."
+                    f"Setup test db from {cached_checksum=} to {current_checksum=}.",
                 )
 
             django.setup_test_db(verbosity=verbosity)

@@ -8,7 +8,9 @@ def dump(connection, output_file):
     if ctx["port"]:
         mysqldump = "mysqldump -h {host} -P {port} -u {user} --result-file {output_file} {database}"  # noqa: E501
     else:
-        mysqldump = "mysqldump -h {host} -u {user} --result-file {output_file} {database}"  # noqa: E501
+        mysqldump = (
+            "mysqldump -h {host} -u {user} --result-file {output_file} {database}"
+        )
     shell.exec(mysqldump.format(output_file=output_file, **ctx), env)
 
 

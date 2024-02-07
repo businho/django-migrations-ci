@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
@@ -24,5 +23,5 @@ DATABASES = {
         "TEST": {
             "NAME": BASE_DIR / "dbtest.sqlite3",
         },
-    }
+    },
 }

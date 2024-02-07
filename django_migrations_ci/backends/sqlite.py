@@ -2,6 +2,7 @@ import os
 
 from django_migrations_ci import shell
 
+
 def dump(connection, output_file):
     database = connection.settings_dict["NAME"]
     stdout = shell.exec(f"sqlite3 {database} .dump")
