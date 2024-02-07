@@ -72,8 +72,7 @@ Saving cache files to an external storage allow the lib to reuse partial migrati
 When you write a new migration, it will try to get a cache without this
 last migration and load from it, running only the new migrations.
 
-The [example app has a basic S3 configuration](example/settings.py#L29-L34), but it's possible
-to use any custom backend:
+An S3 example,, but it works with any custom backend:
 
 ```python
 from storages.backends.s3boto3 import S3Boto3Storage
