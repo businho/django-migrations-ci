@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
@@ -25,10 +26,3 @@ DATABASES = {
         },
     }
 }
-
-# AWS credentials (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) are defined
-# in .github/workflows/example-test.yml as environment variables.
-AWS_STORAGE_BUCKET_NAME = "example-migrateci-cache"
-AWS_S3_REGION_NAME = "us-east-2"
-
-MIGRATECI_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
