@@ -1,5 +1,4 @@
 import os
-from io import StringIO
 from unittest.mock import sentinel
 
 import django as djangoframework

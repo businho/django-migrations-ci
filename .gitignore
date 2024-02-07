@@ -10,3 +10,4 @@ dist/
 *.sqlite3
 coverage*.xml
 poetry.lock
+.venv/
