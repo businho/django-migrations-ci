@@ -35,6 +35,7 @@ def cli(
     depth=None,
     reuse_db=False,
     verbosity=None,
+    checksum=None,
 ):
     args = ["manage.py", "migrateci"]
     if parallel is not None:
@@ -51,6 +52,8 @@ def cli(
         args.append(f"--depth={depth}")
     if reuse_db:
         args.append("--reuse-db")
+    if checksum:
+        args.append("--checksum")
 
     execute_from_command_line(args)
 
@@ -131,6 +134,13 @@ def test_migrateci_reuse_db(mocker, tmpdir):
     load_spy = mocker.spy(django, "load")
     cli(location=tmpdir, reuse_db=True)
     load_spy.assert_not_called()
+
+
+def test_checksum(capsys, mocker, tmpdir):
+    cli(location=tmpdir, checksum=True)
+    result = capsys.readouterr()
+    assert result.out.strip() == CHECKSUM_0002
+    assert not result.err
 
 
 class StorageSpy(FileSystemStorage):

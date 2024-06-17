@@ -131,6 +131,7 @@ options:
   --location LOCATION
   --pytest
   --depth DEPTH
+  --checksum            Prints the current checksum and exits.
   -v {0,1,2,3}
 ```
 

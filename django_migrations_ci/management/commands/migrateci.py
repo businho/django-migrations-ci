@@ -38,6 +38,13 @@ class Command(BaseCommand):
         )
         parser.add_argument("--depth", type=int, default=settings.depth)
         parser.add_argument("--reuse-db", action="store_true", default=False)
+        parser.add_argument(
+            "--checksum",
+            dest="only_print_checksum",
+            action="store_true",
+            default=False,
+            help="Prints the current checksum and exits."
+        )
 
     def _setup_logging(self):
         lib_logger = logging.getLogger("django_migrations_ci")
@@ -54,6 +61,7 @@ class Command(BaseCommand):
         depth,
         verbosity,
         reuse_db,
+        only_print_checksum,
         **options,
     ):
         self._setup_logging()
@@ -87,7 +95,13 @@ class Command(BaseCommand):
 
         current_checksum = None
         checksums = django.hash_files(depth)
+
         for cached_checksum in checksums:
+            # If run with --checksum, print the current checksum and exit.
+            if only_print_checksum:
+                self.stdout.write(cached_checksum)
+                return 0
+
             # Current checksum is the first result returned from hash_files.
             if current_checksum is None:
                 current_checksum = cached_checksum
