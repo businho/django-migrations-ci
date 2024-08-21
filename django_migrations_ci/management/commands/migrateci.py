@@ -71,7 +71,13 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        storage_class = import_string(storage_class or settings.DEFAULT_FILE_STORAGE)
+        if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
+            default_file_storage = settings.STORAGES["default"].get("BACKEND", "django.core.files.storage.FileSystemStorage")
+        else:
+            # Django < 5.0
+            default_file_storage = getattr(settings, "DEFAULT_FILE_STORAGE", "django.core.files.storage.FileSystemStorage")
+
+        storage_class = import_string(storage_class or default_file_storage)
         default_storage_class = import_string(
             "django.core.files.storage.FileSystemStorage",
         )
