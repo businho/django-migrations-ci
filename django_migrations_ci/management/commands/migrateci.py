@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from django.conf import settings as django_settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.module_loading import import_string
 
@@ -71,11 +72,11 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
-            default_file_storage = settings.STORAGES["default"].get("BACKEND", "django.core.files.storage.FileSystemStorage")
+        if hasattr(django_settings, "STORAGES") and "default" in django_settings.STORAGES:
+            default_file_storage = django_settings.STORAGES["default"].get("BACKEND", "django.core.files.storage.FileSystemStorage")
         else:
             # Django < 5.0
-            default_file_storage = getattr(settings, "DEFAULT_FILE_STORAGE", "django.core.files.storage.FileSystemStorage")
+            default_file_storage = getattr(django_settings, "DEFAULT_FILE_STORAGE", "django.core.files.storage.FileSystemStorage")
 
         storage_class = import_string(storage_class or default_file_storage)
         default_storage_class = import_string(
