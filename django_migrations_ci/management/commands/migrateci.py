@@ -1,8 +1,9 @@
 import logging
 from pathlib import Path
 
-from django.core.files.storage import get_storage_class
+from django.conf import settings as django_settings
 from django.core.management.base import BaseCommand, CommandError
+from django.utils.module_loading import import_string
 
 try:
     from django.test.runner import get_max_test_processes  # type: ignore[attr-defined]
@@ -71,8 +72,14 @@ class Command(BaseCommand):
         elif parallel is not None:
             parallel = int(parallel)
 
-        storage_class = get_storage_class(storage_class)
-        default_storage_class = get_storage_class(
+        if hasattr(django_settings, "STORAGES") and "default" in django_settings.STORAGES:
+            default_file_storage = django_settings.STORAGES["default"].get("BACKEND", "django.core.files.storage.FileSystemStorage")
+        else:
+            # Django < 5.0
+            default_file_storage = getattr(django_settings, "DEFAULT_FILE_STORAGE", "django.core.files.storage.FileSystemStorage")
+
+        storage_class = import_string(storage_class or default_file_storage)
+        default_storage_class = import_string(
             "django.core.files.storage.FileSystemStorage",
         )
         if issubclass(storage_class, default_storage_class):
