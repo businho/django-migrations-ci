@@ -170,6 +170,13 @@ def load(connection, input_file, storage, *, verbosity=1):
             # sqlite3 can't use execute() to run many statements, it fails with
             # sqlite3.Warning: You can only execute one statement at a time.
             cursor.executescript(sql)
+        elif connection.vendor == "postgresql":
+            # strip postgresql meta commands from dump
+            filtered_sql = "\n".join(
+                line for line in sql.splitlines()
+                if not line.lstrip().startswith("\\")
+            )
+            cursor.execute(filtered_sql)
         else:
             cursor.execute(sql)
 
