@@ -20,12 +20,15 @@ jobs:
         python-version: '3.x'
     - name: Install Poetry
       uses: snok/install-poetry@v1
+      with:
+        version: 1.8.5
     - name: Install dependencies
       run: |
         poetry install
     - name: Build and publish to pypi
       uses: JRubics/poetry-publish@v1.16
       with:
+        poetry_version: "<2"
         plugins: poetry_dynamic_versioning[plugin]
         ignore_dev_requirements: true
         pypi_token: ${{ secrets.PYPI_API_TOKEN }}
