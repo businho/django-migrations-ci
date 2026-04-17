@@ -12,12 +12,14 @@ from django.db import connections
 from django.db.migrations.loader import MigrationLoader
 from django.test.utils import setup_databases
 
-logger = logging.getLogger(__name__)
+from django_migrations_ci.backends import oracle as oracle_backend
 
+logger = logging.getLogger(__name__)
 
 def _get_db_backend(connection):
     vendor_map = {
         "mysql": "django_migrations_ci.backends.mysql",
+        "oracle": "django_migrations_ci.backends.oracle",
         "postgresql": "django_migrations_ci.backends.postgresql",
         "sqlite": "django_migrations_ci.backends.sqlite",
     }
@@ -177,6 +179,9 @@ def load(connection, input_file, storage, *, verbosity=1):
                 if not line.lstrip().startswith("\\")
             )
             cursor.execute(filtered_sql)
+        elif connection.vendor == "oracle":
+            for statement in oracle_backend.split_statements(sql):
+                cursor.execute(statement)
         else:
             cursor.execute(sql)
 

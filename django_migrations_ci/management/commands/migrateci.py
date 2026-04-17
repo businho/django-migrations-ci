@@ -183,6 +183,7 @@ class Command(BaseCommand):
                         is_pytest=is_pytest,
                         verbosity=verbosity,
                     )
+        return 0
 
 
 def _migration_filename(connection, checksum):
