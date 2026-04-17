@@ -154,6 +154,7 @@ In the past, I tried to optimize that on Django core, but learnt it's a [running
 ## Supported databases
 
 * mysql
+* oracle
 * postgresql
 * sqlite3
 
@@ -161,7 +162,9 @@ Django default run sqlite3 tests as in memory database and does not work because
 `migrateci` runs in a different process. Add a test database name to settings,
 like [sqlite test settings](django_migrations_ci/tests/testapp/settings_sqlite.py).
 
-Django supports oracle, but the dump function is not implemented here.
+Oracle support requires `python-oracledb` (Django 4.2.9+). Oracle does not
+implement Django's `clone_test_db`, so parallel test databases are not
+supported on Oracle.
 
 ## Database names for parallel tests
 
