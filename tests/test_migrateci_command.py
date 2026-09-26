@@ -14,9 +14,9 @@ from django_migrations_ci import django
 CHECKSUM_0001 = "e7cc3570aebddf921af899fc45ba3e9c"
 CHECKSUM_0002 = "8c1c0190533e18f1e694d8b0be5c46ad"
 
-skip_if_oracle = pytest.mark.skipif(
+requires_clone = pytest.mark.skipif(
     os.getenv("DATABASES_MODULE") == "oracle",
-    reason="Django Oracle backend does not implement clone_test_db.",
+    reason="Oracle test databases can't be cloned.",
 )
 
 
@@ -28,8 +28,7 @@ def _check_db(connection, *, suffix="", new_data=None):
     with django.test_db(connection, suffix=suffix):
         with connection.cursor() as conn:
             conn.execute("SELECT * FROM testapp_bus ORDER BY id")
-            # Oracle returns LOB objects for TextField that can only be read
-            # while connected, so unwrap eagerly before the connection closes.
+            # Oracle returns TextField values as LOBs.
             result = [
                 tuple(v.read() if hasattr(v, "read") else v for v in row)
                 for row in conn.fetchall()
@@ -74,7 +73,7 @@ def test_migrateci(tmpdir):
     _check_db(connections["default"])
 
 
-@skip_if_oracle
+@requires_clone
 def test_migrateci_parallel(tmpdir):
     cli(location=tmpdir, parallel=1)
     connection = connections["default"]
@@ -88,7 +87,7 @@ def test_migrateci_parallel(tmpdir):
         pytest.fail("Database 2 should not exist here.")
 
 
-@skip_if_oracle
+@requires_clone
 def test_migrateci_pytest(tmpdir):
     cli(location=tmpdir, parallel=1, pytest=True)
     connection = connections["default"]
@@ -100,6 +99,14 @@ def test_migrateci_pytest(tmpdir):
         pass
     else:  # pragma: nocover
         pytest.fail("Database gw1 should not exist here.")
+
+
+def test_migrateci_parallel_without_clone(capsys, mocker, tmpdir):
+    connection = connections["default"]
+    mocker.patch.object(connection.features, "can_clone_databases", False)
+    with pytest.raises(SystemExit):
+        cli(location=tmpdir, parallel=1)
+    assert "can't be cloned to run tests in parallel" in capsys.readouterr().err
 
 
 def test_migrateci_cached(mocker, tmpdir):

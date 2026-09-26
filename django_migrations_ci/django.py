@@ -12,9 +12,8 @@ from django.db import connections
 from django.db.migrations.loader import MigrationLoader
 from django.test.utils import setup_databases
 
-from django_migrations_ci.backends import oracle as oracle_backend
-
 logger = logging.getLogger(__name__)
+
 
 def _get_db_backend(connection):
     vendor_map = {
@@ -37,6 +36,8 @@ def create_test_db(connection, *, keepdb=False, verbosity=1):
         autoclobber=True,
         keepdb=keepdb,
     )
+    if connection.vendor == "oracle":
+        backend.restore_user(connection)
     return database_name, database_created
 
 
@@ -70,6 +71,8 @@ def setup_test_db(*, verbosity=1):
         connection.close()
         settings.DATABASES[connection.alias]["NAME"] = database_name
         connection.settings_dict["NAME"] = database_name
+        if connection.vendor == "oracle":
+            _get_db_backend(connection).restore_user(connection)
 
 
 def clone_test_db(connection, parallel, is_pytest=False, *, verbosity=1):
@@ -110,6 +113,12 @@ def _fix_sqlite_pytest_suffix(db_name):
 
 @contextmanager
 def test_db(connection, suffix=""):
+    if connection.vendor == "oracle":
+        # Oracle test databases are users in the same database.
+        with _get_db_backend(connection).test_user(connection):
+            yield
+        return
+
     # Django clone_test_db trust setup_databases already changed original settings,
     # so I have to do that here.
     try:
@@ -180,8 +189,7 @@ def load(connection, input_file, storage, *, verbosity=1):
             )
             cursor.execute(filtered_sql)
         elif connection.vendor == "oracle":
-            for statement in oracle_backend.split_statements(sql):
-                cursor.execute(statement)
+            _get_db_backend(connection).load(connection, sql)
         else:
             cursor.execute(sql)
 
