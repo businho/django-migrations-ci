@@ -1,9 +1,12 @@
+import contextlib
 import os
 from pathlib import Path
 
 import pytest
+from django.db import DatabaseError
 
 from django_migrations_ci import django
+from django_migrations_ci.backends import oracle
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -47,5 +50,27 @@ def drop_postgresql_test_databases():
 
 
 @pytest.fixture(autouse=True)
-def drop_test_databases(remove_sqlite3_files, drop_postgresql_test_databases):
+def drop_oracle_test_user():
+    for connection in django.get_unique_connections():
+        if connection.vendor != "oracle":
+            continue
+        # A failed test may leave the connection as the test user.
+        oracle.restore_user(connection)
+        params = connection.creation._get_test_db_params()
+        with connection.cursor() as cursor:
+            for statement in (
+                "DROP USER %(user)s CASCADE",
+                "DROP TABLESPACE %(tblspace)s INCLUDING CONTENTS AND DATAFILES",
+                "DROP TABLESPACE %(tblspace_temp)s INCLUDING CONTENTS AND DATAFILES",
+            ):
+                with contextlib.suppress(DatabaseError):
+                    cursor.execute(statement % params)
+
+
+@pytest.fixture(autouse=True)
+def drop_test_databases(
+    remove_sqlite3_files,
+    drop_postgresql_test_databases,
+    drop_oracle_test_user,
+):
     pass

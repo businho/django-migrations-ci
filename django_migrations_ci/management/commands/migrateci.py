@@ -100,6 +100,15 @@ class Command(BaseCommand):
 
         unique_connections = django.get_unique_connections()
 
+        if parallel:
+            for connection in unique_connections:
+                if not connection.features.can_clone_databases:
+                    msg = (
+                        f"Database {connection.alias} ({connection.vendor}) can't "
+                        "be cloned to run tests in parallel."
+                    )
+                    raise CommandError(msg)
+
         current_checksum = None
         checksums = django.hash_files(depth)
 
@@ -183,6 +192,7 @@ class Command(BaseCommand):
                         is_pytest=is_pytest,
                         verbosity=verbosity,
                     )
+        return 0
 
 
 def _migration_filename(connection, checksum):

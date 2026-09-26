@@ -107,3 +107,5 @@ ignore = [
 [tool.ruff.lint.extend-per-file-ignores]
 "example/app/migrations/*" = ["RUF012"]
 "tests/testapp/migrations/*" = ["RUF012"]
+# Queries are built with names from the data dictionary, not user input.
+"django_migrations_ci/backends/oracle.py" = ["S608"]
